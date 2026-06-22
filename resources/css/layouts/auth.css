@@ -1,0 +1,347 @@
+/* =============================================================
+   Auth layout — login & register.
+   2-column at desktop (form left, ZK info panel right),
+   stacked at mobile.
+   ============================================================= */
+
+.auth-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: var(--s-6) var(--s-5);
+}
+
+.auth-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--s-6);
+    max-width: 1180px;
+    width: 100%;
+    align-items: stretch;
+}
+
+.auth-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-7) var(--s-6);
+    box-shadow: var(--shadow-elevated), var(--glow-soft);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple-400), transparent);
+    pointer-events: none;
+}
+
+.auth-header {
+    margin-bottom: var(--s-6);
+    text-align: left;
+}
+
+.auth-header .auth-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--purple-300);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: var(--s-3);
+    padding: var(--s-1) var(--s-2);
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-sm);
+}
+
+.auth-header h1 {
+    font-size: clamp(1.6rem, 1.3rem + 1.5vw, 2.1rem);
+    color: var(--text-primary);
+    margin-bottom: var(--s-2);
+    letter-spacing: -0.025em;
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    justify-content: flex-start;
+}
+
+.auth-header h1 i {
+    color: var(--purple-400);
+}
+
+.auth-header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+}
+
+.auth-form .btn--block,
+.auth-form .btn-block {
+    margin-top: var(--s-3);
+}
+
+.auth-footer {
+    margin-top: var(--s-5);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--border-soft);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.auth-footer a {
+    color: var(--purple-400);
+    font-weight: var(--weight-medium);
+}
+
+.auth-footer a:hover {
+    color: var(--purple-300);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* ZK info panel — replaces "features list" with a Schnorr stepper +
+   logs console. */
+.zk-info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-5);
+}
+
+.zk-info-panel .process-logs {
+    flex: 1;
+    min-height: 280px;
+}
+
+.zk-info-panel__intro {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-6);
+    position: relative;
+}
+
+.zk-info-panel__intro::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 20%, var(--purple-500), transparent 80%);
+}
+
+.zk-info-panel__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--purple-300);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: var(--s-2);
+}
+
+.zk-info-panel__title {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    margin-bottom: var(--s-3);
+    letter-spacing: -0.02em;
+}
+
+.zk-info-panel__lede {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: var(--s-5);
+}
+
+/* Schnorr stepper — 3 steps that highlight as user progresses */
+.schnorr-steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    list-style: none;
+    padding: 0;
+}
+
+.schnorr-step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: var(--s-3);
+    align-items: start;
+    padding: var(--s-3);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    transition:
+        border-color var(--duration-base) var(--ease-out),
+        background var(--duration-base) var(--ease-out);
+    position: relative;
+}
+
+.schnorr-step__num {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-void);
+    border: 1px solid var(--border-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: var(--weight-bold);
+    color: var(--text-muted);
+    transition: all var(--duration-base) var(--ease-out);
+}
+
+.schnorr-step__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+}
+
+.schnorr-step__title {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: var(--weight-semi);
+    color: var(--text-primary);
+}
+
+.schnorr-step__hint {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.schnorr-step.is-active {
+    border-color: var(--purple-500);
+    background: var(--bg-surface);
+}
+
+.schnorr-step.is-active .schnorr-step__num {
+    background: var(--purple-600);
+    border-color: var(--purple-500);
+    color: var(--purple-100);
+    box-shadow: var(--glow-soft);
+}
+
+.schnorr-step.is-done {
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+.schnorr-step.is-done .schnorr-step__num {
+    background: var(--signal-ok-bg);
+    border-color: var(--signal-ok);
+    color: var(--signal-ok);
+}
+
+.schnorr-step.is-done .schnorr-step__num::before {
+    content: '✓';
+    font-size: 1rem;
+}
+
+.schnorr-step.is-done .schnorr-step__num__digit {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+    }
+    .auth-card {
+        padding: var(--s-6) var(--s-5);
+    }
+}
+
+@media (max-width: 768px) {
+    .auth-body {
+        padding: var(--s-4);
+    }
+    .auth-container { gap: var(--s-4); }
+    .zk-info-panel { gap: var(--s-4); }
+    .zk-info-panel__intro { padding: var(--s-5); }
+    .zk-info-panel__title { font-size: 1.2rem; }
+    .zk-info-panel__lede { font-size: 0.88rem; }
+    .schnorr-steps { gap: var(--s-2); }
+}
+
+@media (max-width: 480px) {
+    .auth-body {
+        padding: var(--s-3);
+    }
+    .auth-card {
+        padding: var(--s-5) var(--s-4);
+    }
+    .auth-header h1 {
+        font-size: 1.4rem;
+        gap: var(--s-2);
+    }
+    .auth-header .auth-eyebrow {
+        font-size: 0.62rem;
+        letter-spacing: 0.14em;
+    }
+    .auth-header p { font-size: 0.85rem; }
+    .zk-info-panel__intro { padding: var(--s-4); }
+    .zk-info-panel__title { font-size: 1.05rem; }
+    .zk-info-panel__lede { font-size: 0.82rem; }
+    .schnorr-step {
+        grid-template-columns: 28px 1fr;
+        padding: var(--s-2);
+    }
+    .schnorr-step__num {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    .schnorr-step__title { font-size: 0.82rem; }
+    .schnorr-step__hint { font-size: 0.68rem; }
+    .process-logs { padding: var(--s-4); }
+}
+
+@media (max-width: 375px) {
+    .auth-body {
+        padding: var(--s-2);
+    }
+    .auth-card {
+        padding: var(--s-4) var(--s-3);
+        border-radius: var(--radius-md);
+    }
+    .auth-container { gap: var(--s-3); }
+    .auth-header {
+        margin-bottom: var(--s-4);
+    }
+    .auth-header h1 { font-size: 1.2rem; }
+    .auth-header p { font-size: 0.78rem; }
+    .auth-form { gap: var(--s-3); }
+    .auth-footer {
+        margin-top: var(--s-4);
+        padding-top: var(--s-3);
+        font-size: 0.8rem;
+    }
+    .zk-info-panel__intro {
+        padding: var(--s-3);
+        border-radius: var(--radius-md);
+    }
+    .zk-info-panel__title { font-size: 0.98rem; }
+    .zk-info-panel__lede {
+        font-size: 0.78rem;
+        margin-bottom: var(--s-4);
+    }
+    .schnorr-step__title { font-size: 0.78rem; }
+    .schnorr-step__hint { font-size: 0.65rem; line-height: 1.4; }
+    .process-logs { padding: var(--s-3); }
+}

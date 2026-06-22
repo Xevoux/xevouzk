@@ -1,0 +1,189 @@
+/* =============================================================
+   Button — flat, border 1px, glow on primary hover.
+   ============================================================= */
+
+.btn {
+    --btn-bg: var(--bg-elevated);
+    --btn-fg: var(--text-primary);
+    --btn-border: var(--border-base);
+    --btn-bg-hover: var(--bg-elevated);
+    --btn-glow: transparent;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    padding: var(--s-3) var(--s-5);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: var(--weight-medium);
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    color: var(--btn-fg);
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-base) var(--ease-out),
+        transform var(--duration-fast) var(--ease-out);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.btn:hover {
+    background: var(--btn-bg-hover);
+    box-shadow: 0 0 0 1px var(--purple-500), var(--btn-glow);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn:disabled,
+.btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn i {
+    font-size: 0.95em;
+}
+
+/* --- Variants --- */
+
+.btn--primary {
+    --btn-bg: var(--purple-600);
+    --btn-fg: var(--purple-100);
+    --btn-border: var(--purple-500);
+    --btn-bg-hover: var(--purple-500);
+    --btn-glow: var(--glow-soft);
+}
+
+.btn--primary:hover {
+    --btn-glow: var(--glow-strong);
+}
+
+.btn--ghost {
+    --btn-bg: transparent;
+    --btn-fg: var(--purple-300);
+    --btn-border: var(--purple-700);
+    --btn-bg-hover: rgba(168, 85, 247, 0.08);
+}
+
+.btn--danger {
+    --btn-bg: rgba(248, 113, 113, 0.12);
+    --btn-fg: var(--signal-error);
+    --btn-border: rgba(248, 113, 113, 0.4);
+    --btn-bg-hover: rgba(248, 113, 113, 0.2);
+}
+
+.btn--success {
+    --btn-bg: rgba(74, 222, 128, 0.12);
+    --btn-fg: var(--signal-ok);
+    --btn-border: rgba(74, 222, 128, 0.4);
+    --btn-bg-hover: rgba(74, 222, 128, 0.2);
+}
+
+.btn--mono {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+/* --- Sizes --- */
+
+.btn--sm {
+    padding: var(--s-2) var(--s-3);
+    font-size: 0.78rem;
+    gap: var(--s-1);
+}
+
+.btn--lg {
+    padding: var(--s-4) var(--s-6);
+    font-size: 1rem;
+}
+
+.btn--block {
+    width: 100%;
+}
+
+/* Allow long button labels to wrap rather than overflow narrow cards.
+   Keeps "Generate Proof & Submit"-class buttons usable on phones. */
+@media (max-width: 480px) {
+    .btn {
+        white-space: normal;
+        text-align: center;
+        line-height: 1.25;
+    }
+    .btn--lg {
+        padding: var(--s-3) var(--s-5);
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .btn {
+        padding: var(--s-3) var(--s-4);
+        font-size: 0.85rem;
+    }
+    .btn--sm {
+        padding: var(--s-2);
+        font-size: 0.72rem;
+    }
+}
+
+/* Icon-only square button — meets WCAG 2.5.5 (44x44) on touch devices */
+.btn--icon {
+    padding: var(--s-2);
+    width: 40px;
+    height: 40px;
+    aspect-ratio: 1;
+}
+
+@media (max-width: 1024px) {
+    .btn--icon {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* Legacy aliases — existing Blade markup uses BEM-light names without the
+   double-dash. These remap to the new variants so unmigrated views stay
+   coherent during the refactor. Remove only after all views use --variants. */
+.btn-primary {
+    background: var(--purple-600);
+    color: var(--purple-100);
+    border-color: var(--purple-500);
+}
+.btn-primary:hover {
+    background: var(--purple-500);
+    box-shadow: 0 0 0 1px var(--purple-500), var(--glow-strong);
+}
+.btn-secondary {
+    background: transparent;
+    color: var(--purple-300);
+    border-color: var(--purple-700);
+}
+.btn-success {
+    background: rgba(74, 222, 128, 0.12);
+    color: var(--signal-ok);
+    border-color: rgba(74, 222, 128, 0.4);
+}
+.btn-outline {
+    background: transparent;
+    color: var(--purple-300);
+    border-color: var(--purple-500);
+}
+.btn-info {
+    background: rgba(96, 165, 250, 0.12);
+    color: var(--signal-info);
+    border-color: rgba(96, 165, 250, 0.4);
+}
+.btn-block { width: 100%; }
+.btn-sm    { padding: var(--s-2) var(--s-3); font-size: 0.78rem; }

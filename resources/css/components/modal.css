@@ -1,0 +1,186 @@
+/* =============================================================
+   Modal — overlay dialogs.
+   ============================================================= */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 5, 13, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: var(--s-5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: modal-fade-in var(--duration-base) var(--ease-out);
+}
+
+.modal.active,
+.modal[style*="display: flex"] {
+    display: flex;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-deep), var(--glow-soft);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: modal-slide-up var(--duration-slow) var(--ease-spring);
+    position: relative;
+}
+
+.modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple-400), transparent);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding: var(--s-5);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+
+.modal-close {
+    background: transparent;
+    border: 1px solid var(--border-base);
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+
+@media (max-width: 1024px) {
+    .modal-close {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+.modal-close:hover {
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--signal-error);
+    border-color: rgba(248, 113, 113, 0.4);
+}
+
+.modal-body {
+    padding: var(--s-5);
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+}
+
+.modal-actions .btn {
+    flex: 1;
+}
+
+.detail-section {
+    margin-bottom: var(--s-5);
+}
+
+.detail-section h3 {
+    color: var(--purple-300);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--s-3);
+    font-family: var(--font-mono);
+}
+
+@keyframes modal-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes modal-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .modal {
+        padding: var(--s-3);
+        align-items: flex-end;
+    }
+    .modal-content {
+        max-height: 92vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        animation: modal-sheet-up var(--duration-slow) var(--ease-spring);
+    }
+    .modal-header { padding: var(--s-4); }
+    .modal-body { padding: var(--s-4); }
+}
+
+@media (max-width: 480px) {
+    .modal { padding: 0; }
+    .modal-content {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+    }
+    .modal-header h2 { font-size: 1rem; }
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+}
+
+@media (max-width: 375px) {
+    .modal-header { padding: var(--s-3); gap: var(--s-2); }
+    .modal-header h2 { font-size: 0.92rem; }
+    /* keep ≥40px tap target even on smallest phones */
+    .modal-close { width: 40px; height: 40px; font-size: 1.35rem; }
+    .modal-body { padding: var(--s-3); }
+    .detail-section h3 { font-size: 0.7rem; letter-spacing: 0.08em; }
+}
+
+@keyframes modal-sheet-up {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

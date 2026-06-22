@@ -1,0 +1,252 @@
+/* =============================================================
+   Payment form page.
+   ============================================================= */
+
+.payment-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--s-5);
+}
+
+@media (max-width: 1024px) {
+    .payment-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Sidebar ringkasan wallet (menggantikan panel Process Logs lama). */
+.payment-side-info .wallet-info-mini {
+    margin-top: 0;
+}
+
+.payment-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-6);
+    box-shadow: var(--shadow-elevated);
+}
+
+.payment-card h2 {
+    margin: 0 0 var(--s-5) 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+/* Tabs */
+.payment-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: var(--s-5);
+    border-bottom: 1px solid var(--border-base);
+    position: relative;
+}
+
+.tab-btn {
+    position: relative;
+    background: transparent;
+    border: none;
+    padding: var(--s-3) var(--s-4);
+    min-height: 44px;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: color var(--duration-fast) var(--ease-out);
+}
+
+.tab-btn::after {
+    content: '';
+    position: absolute;
+    left: var(--s-3);
+    right: var(--s-3);
+    bottom: -1px;
+    height: 2px;
+    background: transparent;
+    transition:
+        background var(--duration-base) var(--ease-out),
+        box-shadow var(--duration-base) var(--ease-out);
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    color: var(--purple-300);
+}
+
+.tab-btn.active::after {
+    background: var(--purple-500);
+    box-shadow: 0 0 12px var(--purple-500);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+}
+
+/* QR result panel */
+.qr-result {
+    margin-top: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--border-soft);
+    text-align: center;
+}
+
+.qr-result h3 {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--purple-300);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: var(--s-4);
+}
+
+.qr-result .qr-code-container {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-2);
+    background: var(--bg-void);
+    padding: var(--s-4);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    position: relative;
+}
+
+.qr-result .qr-code-container::before,
+.qr-result .qr-code-container::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--purple-500);
+}
+
+.qr-result .qr-code-container::before {
+    top: -1px; left: -1px;
+    border-right: none; border-bottom: none;
+}
+
+.qr-result .qr-code-container::after {
+    bottom: -1px; right: -1px;
+    border-left: none; border-top: none;
+}
+
+.qr-result .qr-code-container img {
+    max-width: 240px;
+    width: 100%;
+    background: var(--text-primary);
+    padding: var(--s-2);
+    border-radius: var(--radius-sm);
+}
+
+.qr-instruction {
+    margin: var(--s-3) 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* Wallet balance info chip */
+.wallet-balance-info {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    padding: var(--s-3) var(--s-4);
+    text-align: center;
+    margin: var(--s-3) 0;
+}
+
+.wallet-balance-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.wallet-balance-info strong {
+    font-family: var(--font-mono);
+    color: var(--purple-300);
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .payment-card { padding: var(--s-4); }
+    .payment-tabs {
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .payment-tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+        padding: var(--s-3) var(--s-3);
+        font-size: 0.82rem;
+        white-space: nowrap;
+    }
+    .qr-result .qr-code-container img,
+    .payment-card .qr-image { max-width: 200px; }
+}
+
+@media (max-width: 480px) {
+    .payment-card { padding: var(--s-3); }
+    .payment-card h2 {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        margin-bottom: var(--s-4);
+    }
+    .tab-btn {
+        padding: var(--s-2) var(--s-3);
+        font-size: 0.78rem;
+    }
+    .qr-result h3 {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+    }
+    .qr-result .qr-code-container img,
+    .payment-card .qr-image { max-width: 170px; }
+    .qr-instruction { font-size: 0.78rem; }
+    .wallet-balance-info p { font-size: 0.82rem; }
+    .wallet-balance-info strong { font-size: 0.9rem; }
+}
+
+@media (max-width: 375px) {
+    .payment-card {
+        padding: var(--s-3) var(--s-2);
+        border-radius: var(--radius-md);
+    }
+    .payment-tabs {
+        margin-bottom: var(--s-4);
+    }
+    .tab-btn {
+        padding: var(--s-2);
+        font-size: 0.72rem;
+    }
+    .tab-btn::after {
+        left: var(--s-1);
+        right: var(--s-1);
+    }
+    .payment-form { gap: var(--s-3); }
+    .qr-result .qr-code-container img,
+    .payment-card .qr-image { max-width: 150px; }
+    .qr-code-container { padding: var(--s-3); }
+    .qr-instruction { font-size: 0.75rem; }
+    .wallet-balance-info {
+        padding: var(--s-2) var(--s-3);
+    }
+}

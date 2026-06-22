@@ -1,0 +1,79 @@
+/* =============================================================
+   Badge — small status tag.
+   ============================================================= */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    padding: 3px var(--s-2);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-sm);
+    border: 1px solid currentColor;
+    background: transparent;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.badge i {
+    font-size: 0.85em;
+}
+
+.badge--ok,
+.badge-success {
+    color: var(--signal-ok);
+    background: var(--signal-ok-bg);
+    border-color: rgba(74, 222, 128, 0.4);
+}
+
+.badge--warn,
+.badge-warning {
+    color: var(--signal-warn);
+    background: var(--signal-warn-bg);
+    border-color: rgba(251, 191, 36, 0.4);
+}
+
+.badge--error,
+.badge-danger {
+    color: var(--signal-error);
+    background: var(--signal-error-bg);
+    border-color: rgba(248, 113, 113, 0.4);
+}
+
+.badge--info,
+.badge-secondary {
+    color: var(--text-muted);
+    background: rgba(139, 122, 184, 0.10);
+    border-color: rgba(139, 122, 184, 0.35);
+}
+
+/* Special: proof / privacy — the brand signature */
+.badge--proof,
+.badge-primary {
+    color: var(--purple-300);
+    background: rgba(168, 85, 247, 0.12);
+    border-color: rgba(168, 85, 247, 0.4);
+}
+
+/* Dot prefix for live-status badges */
+.badge--dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+}
+
+.badge--live::before {
+    animation: pulse-dot 1.6s var(--ease-out) infinite;
+}

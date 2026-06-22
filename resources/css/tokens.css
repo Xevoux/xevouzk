@@ -1,0 +1,93 @@
+/* =============================================================
+   XevouZK Design Tokens
+   Crypto-futurist dark purple. SPEC-008.
+   All hex literals live here. Components & pages must use var().
+   ============================================================= */
+
+:root {
+    /* --- Background layers (dark, near-black to surface) --- */
+    --bg-void:        #07050d;
+    --bg-deep:        #0d0820;
+    --bg-surface:     #140a2b;
+    --bg-elevated:    #1c1140;
+    --bg-grid:        rgba(168, 85, 247, 0.06);
+
+    /* --- Purple ramp (primary palette) --- */
+    --purple-100:     #f3e8ff;
+    --purple-300:     #d8b4fe;
+    --purple-400:     #c084fc;
+    --purple-500:     #a855f7;
+    --purple-600:     #9333ea;
+    --purple-700:     #7e22ce;
+    --purple-900:     #4a1d96;
+
+    /* --- Text --- */
+    --text-primary:   #ede9fe;
+    --text-secondary: #c4b5fd;
+    --text-muted:     #8b7ab8;
+    --text-mono:      #d8b4fe;
+
+    /* --- Signal colors (status, alerts) --- */
+    --signal-ok:      #4ade80;
+    --signal-warn:    #fbbf24;
+    --signal-error:   #f87171;
+    --signal-info:    #60a5fa;
+
+    /* Tinted background for signal surfaces */
+    --signal-ok-bg:    rgba(74, 222, 128, 0.10);
+    --signal-warn-bg:  rgba(251, 191, 36, 0.10);
+    --signal-error-bg: rgba(248, 113, 113, 0.10);
+    --signal-info-bg:  rgba(96, 165, 250, 0.10);
+
+    /* --- Border tints --- */
+    --border-soft:    rgba(168, 85, 247, 0.10);
+    --border-base:    rgba(168, 85, 247, 0.18);
+    --border-strong:  rgba(168, 85, 247, 0.35);
+
+    /* --- Typography --- */
+    --font-display: 'Sora', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-body:    'Sora', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+
+    /* Font weights kept minimal (Sora ships well at 400/500/600/700) */
+    --weight-regular: 400;
+    --weight-medium:  500;
+    --weight-semi:    600;
+    --weight-bold:    700;
+
+    /* --- Spacing scale (4px base) --- */
+    --s-1:  4px;
+    --s-2:  8px;
+    --s-3:  12px;
+    --s-4:  16px;
+    --s-5:  24px;
+    --s-6:  32px;
+    --s-7:  48px;
+    --s-8:  64px;
+    --s-9:  96px;
+
+    /* --- Radius (small, sharp aesthetic) --- */
+    --radius-sm:  4px;
+    --radius-md:  8px;
+    --radius-lg:  12px;
+    --radius-pill: 999px;
+
+    /* --- Shadow & glow --- */
+    --shadow-flat:     0 1px 0 0 rgba(168, 85, 247, 0.08);
+    --shadow-elevated: 0 12px 32px -12px rgba(13, 8, 32, 0.8), 0 0 0 1px rgba(168, 85, 247, 0.10);
+    --shadow-deep:     0 24px 64px -24px rgba(0, 0, 0, 0.7);
+    --glow-soft:       0 0 24px rgba(168, 85, 247, 0.18);
+    --glow-strong:     0 0 48px rgba(168, 85, 247, 0.35);
+
+    /* --- Motion --- */
+    --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 400ms;
+
+    /* --- Layout maxes --- */
+    --max-content: 1280px;
+    --max-narrow:  860px;
+    --nav-height:  72px;
+}

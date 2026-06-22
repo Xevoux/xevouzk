@@ -1,0 +1,319 @@
+{
+  "_browser.esm-D_0p07fP.js": {
+    "file": "assets/browser.esm-D_0p07fP.js",
+    "name": "browser.esm",
+    "imports": [
+      "_index-BbP3371Q.js",
+      "_index-BAMY2Nnw.js"
+    ]
+  },
+  "_index-BAMY2Nnw.js": {
+    "file": "assets/index-BAMY2Nnw.js",
+    "name": "index"
+  },
+  "_index-BbP3371Q.js": {
+    "file": "assets/index-BbP3371Q.js",
+    "name": "index"
+  },
+  "_index-DXLj9f1R.js": {
+    "file": "assets/index-DXLj9f1R.js",
+    "name": "index"
+  },
+  "_modular-DcIdqNcT.js": {
+    "file": "assets/modular-DcIdqNcT.js",
+    "name": "modular"
+  },
+  "_provider-jsonrpc-9_-XlvA0.js": {
+    "file": "assets/provider-jsonrpc-9_-XlvA0.js",
+    "name": "provider-jsonrpc",
+    "imports": [
+      "_units-DouUq6th.js",
+      "_sha2-C-iwn1Nm.js"
+    ]
+  },
+  "_record-event-CsvGq6r0.js": {
+    "file": "assets/record-event-CsvGq6r0.js",
+    "name": "record-event"
+  },
+  "_secp256k1-CVYOKr_J.js": {
+    "file": "assets/secp256k1-CVYOKr_J.js",
+    "name": "secp256k1",
+    "imports": [
+      "_sha256-BXrfX6Da.js",
+      "_modular-DcIdqNcT.js"
+    ]
+  },
+  "_sha2-C-iwn1Nm.js": {
+    "file": "assets/sha2-C-iwn1Nm.js",
+    "name": "sha2",
+    "imports": [
+      "_units-DouUq6th.js",
+      "_index-BbP3371Q.js"
+    ]
+  },
+  "_sha256-BXrfX6Da.js": {
+    "file": "assets/sha256-BXrfX6Da.js",
+    "name": "sha256"
+  },
+  "_units-DouUq6th.js": {
+    "file": "assets/units-DouUq6th.js",
+    "name": "units"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-b9_2IP8M.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/account-guard.js": {
+    "file": "assets/account-guard-CRrE-wCJ.js",
+    "name": "account-guard",
+    "src": "resources/js/account-guard.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/schnorr-auth.js",
+      "_secp256k1-CVYOKr_J.js",
+      "_sha256-BXrfX6Da.js",
+      "_modular-DcIdqNcT.js"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-Cwn7NyD7.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_index-BbP3371Q.js",
+      "_index-BAMY2Nnw.js",
+      "_index-DXLj9f1R.js"
+    ]
+  },
+  "resources/js/note-backup.js": {
+    "file": "assets/note-backup-DxcHbLTt.js",
+    "name": "note-backup",
+    "src": "resources/js/note-backup.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/note-store.js",
+      "_sha2-C-iwn1Nm.js",
+      "_units-DouUq6th.js",
+      "_index-BbP3371Q.js"
+    ]
+  },
+  "resources/js/note-crypto.js": {
+    "file": "assets/note-crypto-D_eMyD_0.js",
+    "name": "note-crypto",
+    "src": "resources/js/note-crypto.js",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_sha256-BXrfX6Da.js",
+      "_modular-DcIdqNcT.js"
+    ]
+  },
+  "resources/js/note-store.js": {
+    "file": "assets/note-store-BliZcYEH.js",
+    "name": "note-store",
+    "src": "resources/js/note-store.js",
+    "isEntry": true,
+    "imports": [
+      "_units-DouUq6th.js"
+    ]
+  },
+  "resources/js/payment-relay.js": {
+    "file": "assets/payment-relay-17IIn4j4.js",
+    "name": "payment-relay",
+    "src": "resources/js/payment-relay.js",
+    "isEntry": true,
+    "imports": [
+      "_provider-jsonrpc-9_-XlvA0.js",
+      "_units-DouUq6th.js",
+      "_sha2-C-iwn1Nm.js",
+      "_index-BbP3371Q.js"
+    ]
+  },
+  "resources/js/polygon-deposit.js": {
+    "file": "assets/polygon-deposit-Bx3V69uq.js",
+    "name": "polygon-deposit",
+    "src": "resources/js/polygon-deposit.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/shield-key.js",
+      "_index-DXLj9f1R.js",
+      "resources/js/payment-relay.js",
+      "_record-event-CsvGq6r0.js",
+      "resources/js/note-store.js",
+      "_units-DouUq6th.js",
+      "_provider-jsonrpc-9_-XlvA0.js",
+      "_index-BAMY2Nnw.js",
+      "_sha256-BXrfX6Da.js",
+      "_sha2-C-iwn1Nm.js",
+      "_index-BbP3371Q.js"
+    ]
+  },
+  "resources/js/polygon-key.js": {
+    "file": "assets/polygon-key-4uepFkR8.js",
+    "name": "polygon-key",
+    "src": "resources/js/polygon-key.js",
+    "isEntry": true,
+    "imports": [
+      "_secp256k1-CVYOKr_J.js",
+      "_sha256-BXrfX6Da.js",
+      "_modular-DcIdqNcT.js"
+    ]
+  },
+  "resources/js/polygon-transfer.js": {
+    "file": "assets/polygon-transfer-wclblZ55.js",
+    "name": "polygon-transfer",
+    "src": "resources/js/polygon-transfer.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/shield-key.js",
+      "_index-DXLj9f1R.js",
+      "_browser.esm-D_0p07fP.js",
+      "resources/js/payment-relay.js",
+      "resources/js/note-crypto.js",
+      "resources/js/note-store.js",
+      "_record-event-CsvGq6r0.js",
+      "_provider-jsonrpc-9_-XlvA0.js",
+      "_units-DouUq6th.js",
+      "_sha2-C-iwn1Nm.js",
+      "_index-BAMY2Nnw.js",
+      "_sha256-BXrfX6Da.js",
+      "_index-BbP3371Q.js",
+      "_modular-DcIdqNcT.js"
+    ],
+    "dynamicImports": [
+      "resources/js/note-crypto.js"
+    ]
+  },
+  "resources/js/polygon-withdraw.js": {
+    "file": "assets/polygon-withdraw-CnNfjfDa.js",
+    "name": "polygon-withdraw",
+    "src": "resources/js/polygon-withdraw.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/shield-key.js",
+      "_index-DXLj9f1R.js",
+      "_browser.esm-D_0p07fP.js",
+      "resources/js/payment-relay.js",
+      "_record-event-CsvGq6r0.js",
+      "resources/js/note-store.js",
+      "_provider-jsonrpc-9_-XlvA0.js",
+      "_units-DouUq6th.js",
+      "_index-BAMY2Nnw.js",
+      "_sha256-BXrfX6Da.js",
+      "_index-BbP3371Q.js",
+      "_sha2-C-iwn1Nm.js"
+    ]
+  },
+  "resources/js/pool-balance.js": {
+    "file": "assets/pool-balance-C5lUh14h.js",
+    "name": "pool-balance",
+    "src": "resources/js/pool-balance.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/note-store.js",
+      "_provider-jsonrpc-9_-XlvA0.js",
+      "_units-DouUq6th.js",
+      "_sha2-C-iwn1Nm.js",
+      "_index-BbP3371Q.js"
+    ]
+  },
+  "resources/js/private-send.js": {
+    "file": "assets/private-send-lYozN4Pu.js",
+    "name": "private-send",
+    "src": "resources/js/private-send.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/xevou-uri.js",
+      "resources/js/shield-key.js",
+      "resources/js/note-store.js",
+      "_record-event-CsvGq6r0.js",
+      "_index-DXLj9f1R.js",
+      "_index-BAMY2Nnw.js",
+      "_sha256-BXrfX6Da.js",
+      "_units-DouUq6th.js"
+    ]
+  },
+  "resources/js/qr-scanner.js": {
+    "file": "assets/qr-scanner-wTeDuIHw.js",
+    "name": "qr-scanner",
+    "src": "resources/js/qr-scanner.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/shield-key.js",
+      "resources/js/xevou-uri.js",
+      "resources/js/private-send.js",
+      "_index-DXLj9f1R.js",
+      "_index-BAMY2Nnw.js",
+      "_sha256-BXrfX6Da.js",
+      "resources/js/note-store.js",
+      "_units-DouUq6th.js",
+      "_record-event-CsvGq6r0.js"
+    ]
+  },
+  "resources/js/receive-qr.js": {
+    "file": "assets/receive-qr-BVNvJP2a.js",
+    "name": "receive-qr",
+    "src": "resources/js/receive-qr.js",
+    "isEntry": true,
+    "imports": [
+      "resources/js/shield-key.js",
+      "resources/js/xevou-uri.js",
+      "resources/js/note-crypto.js",
+      "_index-DXLj9f1R.js",
+      "_index-BAMY2Nnw.js",
+      "_sha256-BXrfX6Da.js",
+      "_modular-DcIdqNcT.js"
+    ]
+  },
+  "resources/js/schnorr-auth.js": {
+    "file": "assets/schnorr-auth-CW1h10ED.js",
+    "name": "schnorr-auth",
+    "src": "resources/js/schnorr-auth.js",
+    "isEntry": true,
+    "imports": [
+      "_secp256k1-CVYOKr_J.js",
+      "_sha256-BXrfX6Da.js",
+      "_modular-DcIdqNcT.js"
+    ]
+  },
+  "resources/js/shield-key.js": {
+    "file": "assets/shield-key-Cn8K9Bhz.js",
+    "name": "shield-key",
+    "src": "resources/js/shield-key.js",
+    "isEntry": true,
+    "imports": [
+      "_index-DXLj9f1R.js",
+      "_index-BAMY2Nnw.js",
+      "_sha256-BXrfX6Da.js"
+    ]
+  },
+  "resources/js/vendor-lucide.js": {
+    "file": "assets/vendor-lucide-BiEdop2r.js",
+    "name": "vendor-lucide",
+    "src": "resources/js/vendor-lucide.js",
+    "isEntry": true
+  },
+  "resources/js/xevou-uri.js": {
+    "file": "assets/xevou-uri-Co4Ig7md.js",
+    "name": "xevou-uri",
+    "src": "resources/js/xevou-uri.js",
+    "isEntry": true
+  },
+  "resources/js/zk-snark.js": {
+    "file": "assets/zk-snark-CEyOBVaL.js",
+    "name": "zk-snark",
+    "src": "resources/js/zk-snark.js",
+    "isEntry": true,
+    "imports": [
+      "_browser.esm-D_0p07fP.js",
+      "_index-BbP3371Q.js",
+      "_index-BAMY2Nnw.js"
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+# ============================================
+# CONTRACTS FOLDER - Deployment Configuration
+# ============================================
+
+# Environment variables (NEVER commit!)
+.env
+.env.local
+.env.*.local
+.env.backup
+.env.production
+
+# Hardhat build artifacts (regenerate on build)
+cache/
+artifacts/
+typechain/
+typechain-types/
+
+# Node modules (too large, reinstall via npm)
+node_modules/
+
+# Test coverage
+coverage/
+coverage.json
+
+# Deployment Info - KEEP THIS!
+# deployments/ folder contains contract addresses
+# This SHOULD be committed for backup & reference
+# Uncomment line below if you want to ignore:
+# deployments/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================
+# IMPORTANT FOR PRODUCTION DEPLOYMENT:
+# ============================================
+# ✅ deployments/ - COMMIT THIS!
+#    Contains deployed contract addresses
+#    Important for Laravel .env configuration
+#
+# ✅ Source files (.sol) - COMMIT THIS!
+#    Located in: contracts/contracts/*.sol
+#
+# ❌ .env - NEVER COMMIT!
+#    Contains private keys
+#    Create separately on deployment machine
+#
+# ❌ node_modules/ - DON'T COMMIT!
+#    Too large, regenerate with: npm install
+# ============================================

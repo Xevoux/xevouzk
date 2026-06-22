@@ -1,0 +1,240 @@
+/* =============================================================
+   Mono-block — display for cryptographic artifacts:
+   wallet address, tx hash, nullifier, proof inputs.
+   Always monospace, always overflow-aware, always copyable.
+   ============================================================= */
+
+.mono-block {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-void);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+}
+
+.mono-block::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--purple-500);
+}
+
+.mono-block__value,
+.mono-block code {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-mono);
+    padding: var(--s-3) var(--s-4) var(--s-3) calc(var(--s-4) + 3px);
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    background: transparent;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+}
+
+.mono-block__action,
+.mono-block .btn-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border-base);
+    color: var(--purple-400);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+}
+
+.mono-block__action:hover,
+.mono-block .btn-copy:hover {
+    background: rgba(168, 85, 247, 0.1);
+    color: var(--purple-300);
+}
+
+.mono-block--lg .mono-block__value,
+.mono-block--lg code {
+    font-size: 1rem;
+    padding: var(--s-4) var(--s-5);
+}
+
+/* Smaller variant for inline use (tx hash columns in tables, etc.) */
+.mono-block--inline {
+    display: inline-flex;
+    border-radius: var(--radius-sm);
+    padding: 2px 0;
+}
+
+.mono-block--inline .mono-block__value,
+.mono-block--inline code {
+    font-size: 0.78rem;
+    padding: 2px var(--s-2) 2px calc(var(--s-2) + 3px);
+}
+
+.mono-block--inline .mono-block__action,
+.mono-block--inline .btn-copy {
+    width: 28px;
+    font-size: 0.75rem;
+}
+
+/* Eyebrow label above a mono-block */
+.mono-block-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--s-2);
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.mono-block-label__hint {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+/* Legacy `<code>` styling within wallet-address divs */
+.wallet-address {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-void);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+}
+
+.wallet-address::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--purple-500);
+}
+
+.wallet-address code {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-mono);
+    padding: var(--s-3) var(--s-4) var(--s-3) calc(var(--s-4) + 3px);
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    background: transparent;
+}
+
+.address-field {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-void);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+}
+
+.address-field::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--purple-500);
+}
+
+.address-field code {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-mono);
+    padding: var(--s-3) var(--s-4) var(--s-3) calc(var(--s-4) + 3px);
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    background: transparent;
+}
+
+.btn-copy,
+.btn-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border-base);
+    color: var(--purple-400);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0 var(--s-3);
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+}
+
+.btn-copy:hover,
+.btn-toggle:hover {
+    background: rgba(168, 85, 247, 0.1);
+    color: var(--purple-300);
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--border-base);
+    color: var(--purple-400);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+
+@media (max-width: 1024px) {
+    .btn-icon {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+.btn-icon:hover {
+    background: rgba(168, 85, 247, 0.1);
+    color: var(--purple-300);
+    border-color: var(--purple-500);
+}
+
+.wallet-code {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-mono);
+    background: var(--bg-void);
+    border-left: 2px solid var(--purple-500);
+    padding: 2px var(--s-2);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}

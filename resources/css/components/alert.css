@@ -1,0 +1,68 @@
+/* =============================================================
+   Alert — flash messages, inline warnings.
+   ============================================================= */
+
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    margin-bottom: var(--s-4);
+    border: 1px solid currentColor;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    background: transparent;
+}
+
+.alert i,
+.alert svg.lucide,
+.alert [data-lucide] {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Message body: satu flex item yang boleh menyusut + membungkus teks panjang.
+   Tanpa ini, teks lepas + <code> + <br> jadi flex item terpisah dan melebar
+   tak beraturan. */
+.alert__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.alert code {
+    overflow-wrap: anywhere;
+}
+
+.alert-success,
+.alert--ok {
+    color: var(--signal-ok);
+    background: var(--signal-ok-bg);
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.alert-error,
+.alert--error {
+    color: var(--signal-error);
+    background: var(--signal-error-bg);
+    border-color: rgba(248, 113, 113, 0.35);
+}
+
+.alert-warning,
+.alert--warn {
+    color: var(--signal-warn);
+    background: var(--signal-warn-bg);
+    border-color: rgba(251, 191, 36, 0.35);
+}
+
+.alert-info,
+.alert--info {
+    color: var(--signal-info);
+    background: var(--signal-info-bg);
+    border-color: rgba(96, 165, 250, 0.35);
+}
+
+.alert strong {
+    color: inherit;
+    font-weight: var(--weight-semi);
+}

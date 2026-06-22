@@ -1,0 +1,610 @@
+/* =============================================================
+   Navbar — top bar with brand, links, network status, profile.
+   ============================================================= */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-5);
+    height: var(--nav-height);
+    padding: 0 var(--s-6);
+    background: rgba(13, 8, 32, 0.85);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+/* CRITICAL: backdrop-filter creates a containing block for fixed-
+   positioned descendants per CSS spec. That breaks .profile-menu
+   bottom-sheet at ≤480 (it gets positioned relative to the navbar
+   element instead of the viewport, so the menu is clipped). Disable
+   the blur at narrow widths to restore correct fixed positioning. */
+@media (max-width: 768px) {
+    .navbar {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(13, 8, 32, 0.96);
+    }
+}
+
+.navbar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(168, 85, 247, 0.35),
+        rgba(168, 85, 247, 0.15),
+        transparent);
+    pointer-events: none;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+
+.navbar-brand h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+    letter-spacing: -0.025em;
+    margin: 0;
+    text-transform: none;
+}
+
+.navbar-brand h2 i {
+    color: var(--purple-400);
+    font-size: 1.2rem;
+}
+
+/* Brand monogram */
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--purple-500);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: var(--weight-bold);
+    color: var(--purple-300);
+    letter-spacing: -0.05em;
+    position: relative;
+}
+
+.brand-mark::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border: 1px solid var(--purple-700);
+    border-radius: calc(var(--radius-sm) + 2px);
+    opacity: 0.5;
+}
+
+/* Brand logo image — favicon + navbar/auth brandmark (public/LogoXevouZK.png) */
+.brand-logo {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* Versi kecil untuk eyebrow di halaman auth (login/register) */
+.brand-logo--sm {
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+    flex: 1;
+    margin-left: var(--s-6);
+}
+
+.nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-3) var(--s-3);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition:
+        color var(--duration-fast) var(--ease-out);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    left: var(--s-3);
+    right: var(--s-3);
+    bottom: -1px;
+    height: 2px;
+    background: transparent;
+    transition:
+        background var(--duration-base) var(--ease-out),
+        box-shadow var(--duration-base) var(--ease-out);
+}
+
+.nav-link:hover {
+    color: var(--text-primary);
+}
+
+.nav-link.active {
+    color: var(--purple-300);
+}
+
+.nav-link.active::after {
+    background: var(--purple-400);
+    box-shadow: 0 0 12px var(--purple-500);
+}
+
+.nav-link i {
+    font-size: 0.95rem;
+    color: currentColor;
+}
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+}
+
+/* Profile dropdown */
+.profile-dropdown {
+    position: relative;
+}
+
+.profile-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-2) var(--s-3);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+    color: var(--text-primary);
+}
+
+.profile-trigger:hover {
+    border-color: var(--purple-500);
+    background: var(--bg-surface);
+}
+
+.profile-avatar {
+    font-size: 1.5rem;
+    color: var(--purple-400);
+    display: flex;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1px;
+}
+
+.profile-name {
+    font-size: 0.85rem;
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.profile-email {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.profile-arrow {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    transition: transform var(--duration-base) var(--ease-out);
+    margin-left: var(--s-1);
+}
+
+.profile-menu.active ~ .profile-trigger .profile-arrow,
+.profile-trigger[aria-expanded="true"] .profile-arrow {
+    transform: rotate(180deg);
+}
+
+.profile-menu {
+    position: absolute;
+    top: calc(100% + var(--s-2));
+    right: 0;
+    min-width: 280px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-deep);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition:
+        opacity var(--duration-base) var(--ease-out),
+        transform var(--duration-base) var(--ease-out),
+        visibility var(--duration-base) var(--ease-out);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.profile-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.profile-menu-header {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-4);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.profile-menu-avatar {
+    font-size: 2rem;
+    color: var(--purple-400);
+}
+
+.profile-menu-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-menu-info strong {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.profile-menu-info span {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.profile-menu-divider {
+    height: 1px;
+    background: var(--border-soft);
+}
+
+.profile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+}
+
+.profile-menu-item:hover {
+    background: rgba(168, 85, 247, 0.08);
+    color: var(--purple-300);
+}
+
+.profile-menu-item i {
+    width: 18px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.profile-menu-item:hover i {
+    color: var(--purple-400);
+}
+
+.profile-menu-item.logout {
+    color: var(--signal-error);
+}
+
+.profile-menu-item.logout i {
+    color: var(--signal-error);
+}
+
+.profile-menu-item.logout:hover {
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--signal-error);
+}
+
+.profile-menu-form {
+    margin: 0;
+}
+
+/* Footer */
+.footer {
+    margin-top: var(--s-7);
+    padding: var(--s-5) var(--s-6);
+    border-top: 1px solid var(--border-soft);
+    background: rgba(13, 8, 32, 0.6);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-align: center;
+    letter-spacing: 0.05em;
+}
+
+/* Responsive
+   ─────────────────────────────────────────────────────────────
+   STRATEGY: Single-row navbar at ALL widths. No flex-wrap — that
+   was flaky in narrow viewports because flex items shrink below
+   their preferred width unless flex-shrink:0 + flex-basis:100%
+   are both set. Instead, aggressive compaction at each breakpoint
+   so everything fits inline, with horizontal scroll on the menu as
+   the last-resort fallback.
+
+   Brand wordmark hides at ≤480 (was ≤375) — at 480 and below the
+   wordmark squeezes nav into overflow even on small phones.
+
+   ≥1280  desktop: full labels + icons.
+   ≤1280  tighter spacing.
+   ≤1024  iPad portrait 820: icon-only nav, profile compact.
+   ≤768   mobile single-row, smaller nav-links.
+   ≤480   wordmark gone, monogram only, status pill = dot+AMOY.
+   ≤375   iPhone SE: smaller monogram, extreme compact.
+*/
+
+@media (max-width: 1280px) {
+    .navbar {
+        padding: 0 var(--s-5);
+        gap: var(--s-4);
+    }
+    .navbar-menu {
+        margin-left: var(--s-4);
+        gap: 0;
+    }
+    .nav-link {
+        padding: var(--s-3) var(--s-2);
+        font-size: 0.82rem;
+    }
+    .profile-email {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 1024px) {
+    .navbar {
+        padding: 0 var(--s-4);
+        gap: var(--s-3);
+    }
+    .navbar-brand {
+        flex-shrink: 0;
+    }
+    .navbar-user {
+        flex-shrink: 0;
+    }
+    .navbar-menu {
+        margin-left: var(--s-3);
+        gap: 0;
+        min-width: 0;
+    }
+    /* Icon-only nav — frees ~250-400px so navbar fits at 820px.
+       NOTE: Lucide icons size via 1em → DON'T set font-size:0 on the
+       parent, or the SVG collapses too. Hide the <span> label via
+       sr-only clipping and size the icon explicitly in rem. */
+    .nav-link {
+        padding: var(--s-3);
+        gap: 0;
+        flex: 0 0 auto;
+    }
+    .nav-link span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    .nav-link i,
+    .nav-link svg.lucide,
+    .nav-link [data-lucide] {
+        width: 1.2rem;
+        height: 1.2rem;
+        font-size: 1.2rem;
+    }
+    .nav-link::after {
+        left: var(--s-2);
+        right: var(--s-2);
+    }
+    /* Compact profile trigger — keep 44x44 tap target */
+    .profile-trigger {
+        padding: var(--s-2);
+        gap: var(--s-2);
+        min-width: 44px;
+        min-height: 44px;
+    }
+    .profile-info { display: none; }
+    /* Higher-specificity selectors required because Lucide replaces
+       <i data-lucide="chevron-down" class="profile-arrow"> with
+       <svg class="profile-arrow lucide ...">, and `svg.lucide` (0,1,1)
+       in lucide.css would otherwise beat `.profile-arrow` (0,1,0). */
+    .profile-trigger .profile-arrow,
+    .profile-trigger svg.profile-arrow,
+    .profile-trigger [data-lucide="chevron-down"].profile-arrow {
+        display: none;
+    }
+    /* Compact status pill */
+    .status-pill {
+        padding: var(--s-1) var(--s-2);
+        font-size: 0.65rem;
+        gap: var(--s-1);
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        height: auto;
+        min-height: var(--nav-height);
+        padding: var(--s-3) var(--s-4);
+        gap: var(--s-3);
+        /* flex-wrap removed — single row, scroll fallback if needed */
+    }
+    .navbar-brand h2 { font-size: 0.95rem; }
+    .navbar-menu {
+        gap: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+    .navbar-menu::-webkit-scrollbar {
+        display: none;
+    }
+    .nav-link {
+        padding: var(--s-2) var(--s-3);
+        flex: 0 0 auto;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    .nav-link i,
+    .nav-link svg.lucide,
+    .nav-link [data-lucide] {
+        width: 1.2rem;
+        height: 1.2rem;
+        font-size: 1.2rem;
+    }
+    .nav-link::after {
+        left: var(--s-3);
+        right: var(--s-3);
+    }
+    .navbar-user {
+        gap: var(--s-2);
+    }
+    .status-pill {
+        font-size: 0.62rem;
+    }
+}
+
+/* Small phones: hide wordmark, single-row navbar, compact status pill. */
+@media (max-width: 480px) {
+    .navbar {
+        padding: var(--s-2) var(--s-3);
+        gap: var(--s-2);
+    }
+    .navbar-brand {
+        gap: 0;
+    }
+    /* Hide wordmark from 480 down — every pixel matters on phones,
+       monogram alone is enough brand identity. */
+    .navbar-brand h2 {
+        display: none;
+    }
+    .brand-mark { width: 32px; height: 32px; font-size: 0.72rem; flex-shrink: 0; }
+    .brand-logo { width: 32px; height: 32px; }
+    .profile-trigger {
+        padding: var(--s-1);
+        gap: 0;
+        min-width: 40px;
+        min-height: 40px;
+    }
+    .profile-avatar { font-size: 1.3rem; }
+    .status-pill {
+        font-size: 0.6rem;
+        letter-spacing: 0.05em;
+        padding: var(--s-1) var(--s-2);
+    }
+    /* Status pill shows only dot + AMOY label */
+    .status-pill__sep,
+    .status-pill span:not(.status-pill__label):not(.status-pill__dot):not(.status-pill__sep) {
+        display: none;
+    }
+    .profile-menu {
+        position: fixed;
+        top: auto;
+        bottom: var(--s-3);
+        left: var(--s-3);
+        right: var(--s-3);
+        min-width: auto;
+        max-height: calc(100vh - var(--s-7));
+        overflow-y: auto;
+    }
+    .nav-link {
+        padding: var(--s-2);
+        min-width: 40px;
+    }
+    .footer { padding: var(--s-4) var(--s-3); font-size: 0.68rem; }
+}
+
+/* iPhone SE / fold portrait: extreme compaction. */
+@media (max-width: 380px) {
+    .navbar {
+        padding: var(--s-2);
+        gap: var(--s-1);
+    }
+    .brand-mark { width: 28px; height: 28px; font-size: 0.65rem; }
+    .brand-logo { width: 28px; height: 28px; }
+    .navbar-user { gap: var(--s-1); }
+    .status-pill {
+        font-size: 0.55rem;
+        padding: 2px var(--s-1);
+        letter-spacing: 0.04em;
+    }
+    .profile-avatar { font-size: 1.15rem; }
+    .nav-link {
+        padding: var(--s-2) var(--s-1);
+        min-width: 36px;
+    }
+    .nav-link i,
+    .nav-link svg.lucide,
+    .nav-link [data-lucide] {
+        width: 1.05rem;
+        height: 1.05rem;
+        font-size: 1.05rem;
+    }
+    .profile-menu {
+        bottom: var(--s-2);
+        left: var(--s-2);
+        right: var(--s-2);
+    }
+    .profile-menu-header { padding: var(--s-3); }
+    .profile-menu-item { padding: var(--s-2) var(--s-3); font-size: 0.82rem; }
+}

@@ -1,0 +1,86 @@
+/* =============================================================
+   Status pill — network connection indicator.
+   "AMOY · 80002 · CONNECTED"
+   ============================================================= */
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-1) var(--s-3);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: var(--weight-medium);
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.status-pill__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    box-shadow: 0 0 0 0 currentColor;
+}
+
+.status-pill__sep {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.status-pill__label {
+    color: var(--text-primary);
+    font-weight: var(--weight-semi);
+}
+
+/* States */
+.status-pill--connected {
+    color: var(--signal-ok);
+    border-color: rgba(74, 222, 128, 0.35);
+    background: var(--signal-ok-bg);
+}
+
+.status-pill--connected .status-pill__dot {
+    background: var(--signal-ok);
+    box-shadow: 0 0 8px var(--signal-ok);
+    animation: pill-pulse 2s var(--ease-out) infinite;
+}
+
+.status-pill--pending {
+    color: var(--signal-warn);
+    border-color: rgba(251, 191, 36, 0.35);
+    background: var(--signal-warn-bg);
+}
+
+.status-pill--pending .status-pill__dot {
+    background: var(--signal-warn);
+    box-shadow: 0 0 8px var(--signal-warn);
+}
+
+.status-pill--offline {
+    color: var(--signal-error);
+    border-color: rgba(248, 113, 113, 0.35);
+    background: var(--signal-error-bg);
+}
+
+.status-pill--offline .status-pill__dot {
+    background: var(--signal-error);
+    box-shadow: 0 0 8px var(--signal-error);
+}
+
+@keyframes pill-pulse {
+    0%, 100% {
+        box-shadow: 0 0 8px currentColor;
+        opacity: 1;
+    }
+    50% {
+        box-shadow: 0 0 16px currentColor;
+        opacity: 0.7;
+    }
+}

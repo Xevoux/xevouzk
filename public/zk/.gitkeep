@@ -1,0 +1,3 @@
+# ZK proof files for client-side generation
+# Copy using: npm run export:keys (in circuits folder)
+

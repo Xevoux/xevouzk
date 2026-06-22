@@ -1,0 +1,199 @@
+# ============================================
+# PRODUCTION DEPLOYMENT (cPanel - No SSH)
+# ============================================
+# Built assets (/public/build) DI-COMMIT karena cPanel deploy tanpa build step.
+# /vendor BOLEH di-commit kalau hosting tidak punya composer.
+# .env dibuat manual di server, tidak pernah di-commit.
+# ============================================
+
+# --------------------------------------------
+# Environment & Secrets (NEVER COMMIT)
+# --------------------------------------------
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+.env.*.backup
+auth.json
+
+# Private keys / certificates (jangan pernah committed walau by accident)
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+!storage/*.key.example
+!storage/oauth-*.key.example
+
+# --------------------------------------------
+# Zero-Knowledge / Trusted Setup Artifacts
+# --------------------------------------------
+# Powers of Tau (huge, regenerable via download script — JANGAN commit)
+*.ptau
+circuits/ptau/*
+!circuits/ptau/.gitkeep
+
+# Circuit build artifacts (regenerable via `npm run compile:all`)
+circuits/build/*
+!circuits/build/.gitkeep
+
+# Per-spec note on proving keys (circuits/keys/*.zkey + public/zk/**):
+#   - Final zkeys di public/zk/** WAJIB di-commit (browser butuh saat runtime,
+#     cPanel deploy tanpa trusted-setup rerun).
+#   - Final zkeys di circuits/keys/ adalah source mirror dari public/zk/ —
+#     boleh tetap tracked untuk backup. Kalau mau strip, gunakan
+#     `git rm --cached circuits/keys/*_final.zkey` lalu uncomment baris di bawah:
+# circuits/keys/*_final.zkey
+# circuits/keys/*_0000.zkey
+# circuits/keys/*_0001.zkey
+
+# --------------------------------------------
+# Node / NPM
+# --------------------------------------------
+/node_modules
+circuits/node_modules
+contracts/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# --------------------------------------------
+# Laravel build & runtime
+# --------------------------------------------
+# /public/build SENGAJA TIDAK di-ignore (cPanel deploy butuh).
+# Kalau pengembangan murni dengan `npm run dev`, uncomment:
+# /public/build
+/public/hot
+/public/storage
+
+# Storage runtime
+/storage/*.key
+/storage/pail
+/storage/debugbar/
+/storage/clockwork/
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitignore
+
+# Bootstrap cache (Laravel runtime; per default .gitignore di folder)
+/bootstrap/cache/*.php
+
+# Composer
+/composer.phar
+/vendor.bak/
+# Vendor itu sendiri: cek baris paling bawah file ini.
+
+# --------------------------------------------
+# Logs
+# --------------------------------------------
+*.log
+/storage/logs/*.log
+!/storage/logs/.gitignore
+
+# --------------------------------------------
+# Testing & Coverage
+# --------------------------------------------
+/coverage
+/.phpunit.cache
+.phpunit.result.cache
+.phpunit.cache/
+.phpunit.coverage/
+.phpunit.report.cache
+
+# --------------------------------------------
+# Smart Contracts (Hardhat) — root-level guard
+# --------------------------------------------
+# Detail di contracts/.gitignore.
+contracts/artifacts/
+contracts/cache/
+contracts/typechain/
+contracts/typechain-types/
+contracts/coverage/
+contracts/coverage.json
+
+# --------------------------------------------
+# IDE & Editor
+# --------------------------------------------
+.idea/
+.vscode/
+.zed/
+.nova/
+.fleet/
+.phpactor.json
+.history/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# --------------------------------------------
+# AI / Coding Assistant Caches
+# --------------------------------------------
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+!.claude/settings.json
+.cursor/
+.aider*
+.specstory/
+.windsurf/
+.continue/
+
+# --------------------------------------------
+# OS Files
+# --------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# --------------------------------------------
+# Backup & temp files
+# --------------------------------------------
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*.tmp
+/tmp/
+/temp/
+*.~lock.*
+
+# --------------------------------------------
+# Misc
+# --------------------------------------------
+Homestead.json
+Homestead.yaml
+
+# ============================================
+# VENDOR — keep tracked for cPanel deployment
+# ============================================
+# Default: TIDAK di-ignore (untuk hosting tanpa composer).
+# Kalau hosting punya composer & Anda mau lean repo, uncomment:
+# /vendor
+# ============================================

@@ -1,0 +1,208 @@
+/* =============================================================
+   Base layer — reset, root layout, atmospheric background,
+   typography defaults, focus ring, scrollbar.
+   ============================================================= */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    background: var(--bg-void);
+    color-scheme: dark;
+}
+
+body {
+    font-family: var(--font-body);
+    font-weight: var(--weight-regular);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+
+    /* Atmospheric background — 3 layers stacked:
+       1. radial purple glow off-center (light source)
+       2. faint purple gridlines (engineering vibe)
+       3. deep base color
+    */
+    background-color: var(--bg-deep);
+    background-image:
+        radial-gradient(ellipse 80% 60% at 15% -10%, rgba(168, 85, 247, 0.22), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 95% 110%, rgba(124, 58, 237, 0.15), transparent 65%),
+        linear-gradient(var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+    background-size:
+        100% 100%,
+        100% 100%,
+        48px 48px,
+        48px 48px;
+    background-attachment: fixed;
+    background-position: 0 0, 0 0, -1px -1px, -1px -1px;
+}
+
+/* Subtle noise overlay for grain (SVG inline, very light) */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Ensure content sits above the noise layer */
+body > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* --- Typography defaults --- */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: var(--weight-semi);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--text-primary);
+}
+
+h1 { font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem); letter-spacing: -0.025em; }
+h2 { font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.75rem); }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.05rem; }
+
+p {
+    color: var(--text-secondary);
+}
+
+a {
+    color: var(--purple-400);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-out);
+}
+
+a:hover {
+    color: var(--purple-300);
+}
+
+code, pre, kbd, samp {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+small {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+}
+
+strong {
+    font-weight: var(--weight-semi);
+    color: var(--text-primary);
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background: var(--border-soft);
+    margin: var(--s-5) 0;
+}
+
+img, svg {
+    display: block;
+    max-width: 100%;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: inherit;
+}
+
+input, textarea, select {
+    font-family: inherit;
+    color: inherit;
+}
+
+/* --- Focus ring (always visible for keyboard nav) --- */
+:focus {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--purple-400);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* --- Custom scrollbar --- */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--purple-700) var(--bg-deep);
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--bg-deep);
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--purple-700);
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--bg-deep);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--purple-500);
+}
+
+/* --- Text selection --- */
+::selection {
+    background: var(--purple-500);
+    color: var(--bg-void);
+}
+
+/* --- Utility primitives --- */
+.text-mono { font-family: var(--font-mono); }
+.text-muted { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+.text-ok { color: var(--signal-ok); }
+.text-warn { color: var(--signal-warn); }
+.text-error { color: var(--signal-error); }
+.text-center { text-align: center; }
+.uppercase { text-transform: uppercase; letter-spacing: 0.08em; }
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

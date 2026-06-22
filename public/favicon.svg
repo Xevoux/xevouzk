@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#7e22ce"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="#0d0820"/>
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="none" stroke="url(#g)" stroke-width="2"/>
+  <g fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="square">
+    <path d="M16 18 L28 32 L16 46"/>
+    <path d="M48 18 L36 32 L48 46"/>
+  </g>
+  <text x="32" y="40" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700" fill="#d8b4fe" text-anchor="middle" letter-spacing="2">ZK</text>
+</svg>

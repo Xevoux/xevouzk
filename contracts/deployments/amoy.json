@@ -1,0 +1,13 @@
+{
+  "network": "amoy",
+  "chainId": "80002",
+  "deployer": "0xF90BA9d8AD592b2B2deB7495C9357383E273Adf4",
+  "timestamp": "2026-06-05T16:43:33.290Z",
+  "spec": " + (Tornado-light commitment pool)",
+  "contracts": {
+    "BalanceCheckVerifier": "0x5653778d4c1C2257Eb65fAa69B714364E7a01363",
+    "PrivateTransferVerifier": "0x5500d21AC089152c0131eC0B7fB97Ad72ED40457",
+    "WithdrawVerifier": "0xa6ff8557D425Bc32D582c544E3DBBfd48Ec56056",
+    "ZKPayment": "0x105e6DB96C697DA8ca0952116bEA12AAbFF359B5"
+  }
+}

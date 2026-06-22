@@ -1,0 +1,139 @@
+/* =============================================================
+   Lucide icon styling.
+   Lucide replaces `<i data-lucide="X">` with `<svg ...>` on load.
+   These rules ensure consistent sizing & color inheritance across
+   the app, plus context-specific tweaks (badge size, button size,
+   spinner animation).
+   ============================================================= */
+
+/* Default size when icon stands alone (h1, info-icon, scanner, etc.). */
+[data-lucide],
+.lucide,
+svg.lucide {
+    width: 1em;
+    height: 1em;
+    display: inline-block;
+    vertical-align: -0.15em;
+    stroke-width: 1.75;
+    color: inherit;
+    flex-shrink: 0;
+}
+
+/* Inside buttons — icons sit beside text, take the line-height height. */
+.btn [data-lucide],
+.btn svg.lucide {
+    width: 1.05em;
+    height: 1.05em;
+    stroke-width: 1.75;
+    vertical-align: middle;
+}
+
+/* Inside badges — small + tight stroke. */
+.badge [data-lucide],
+.badge svg.lucide {
+    width: 0.92em;
+    height: 0.92em;
+    stroke-width: 2;
+}
+
+/* Inside small info icons — info-icon already gives the wrapping box. */
+.info-icon [data-lucide],
+.info-icon svg.lucide {
+    width: 1.5rem;
+    height: 1.5rem;
+    stroke-width: 1.5;
+}
+
+/* Inside profile menu items — fixed 18px so column align. */
+.profile-menu-item [data-lucide],
+.profile-menu-item svg.lucide {
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.75;
+}
+
+/* Inside transaction icon containers — bigger arrows. */
+.transaction-icon [data-lucide],
+.transaction-icon svg.lucide {
+    width: 1.1rem;
+    height: 1.1rem;
+    stroke-width: 2;
+}
+
+/* Inside h1/h2/h3 headers — match heading size minus a bit. */
+h1 > [data-lucide],
+h1 > svg.lucide {
+    width: 0.85em;
+    height: 0.85em;
+    stroke-width: 1.5;
+}
+
+h2 > [data-lucide],
+h2 > svg.lucide,
+h3 > [data-lucide],
+h3 > svg.lucide {
+    width: 0.85em;
+    height: 0.85em;
+    stroke-width: 1.75;
+}
+
+/* Faucet stat icons — wrapper has the box, icon inherits color. */
+.faucet-stat [data-lucide],
+.faucet-stat svg.lucide {
+    width: 1.2rem;
+    height: 1.2rem;
+    stroke-width: 1.75;
+}
+
+/* Scanner actions etc.: align icon-only buttons. */
+.btn-icon [data-lucide],
+.btn-icon svg.lucide,
+.btn-copy [data-lucide],
+.btn-copy svg.lucide,
+.btn-toggle [data-lucide],
+.btn-toggle svg.lucide,
+.modal-close [data-lucide],
+.modal-close svg.lucide {
+    width: 1rem;
+    height: 1rem;
+    stroke-width: 2;
+}
+
+/* Profile avatar circle (user icon) — larger. */
+.profile-avatar [data-lucide],
+.profile-avatar svg.lucide {
+    width: 1.5rem;
+    height: 1.5rem;
+    stroke-width: 1.5;
+}
+
+.profile-menu-avatar [data-lucide],
+.profile-menu-avatar svg.lucide {
+    width: 2rem;
+    height: 2rem;
+    stroke-width: 1.5;
+}
+
+/* Brand-mark next to nav-brand keeps its block style (not an icon). */
+
+/* Spinner animation — applied via class="lucide-spin" on the <i> tag.
+   Lucide preserves the class when generating the <svg>. */
+.lucide-spin,
+svg.lucide-spin {
+    animation: lucide-spin 0.9s linear infinite;
+    transform-origin: center;
+}
+
+@keyframes lucide-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* Reduced motion respects the global rule in base.css; explicit override
+   here in case Lucide injects new SVGs after the initial cascade. */
+@media (prefers-reduced-motion: reduce) {
+    .lucide-spin,
+    svg.lucide-spin {
+        animation: none;
+    }
+}

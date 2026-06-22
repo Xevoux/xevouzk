@@ -1,0 +1,34 @@
+/* =============================================================
+   XevouZK — Entry stylesheet (raw CSS, no preprocessor, no Tailwind)
+   Order matters: tokens → base → components → layouts → pages.
+   See SPEC-008 for the design system rationale.
+   ============================================================= */
+
+@import 'tokens.css';
+@import 'base.css';
+
+/* lucide.css FIRST so component CSS can override icon defaults
+   (display, width/height, color) via plain class selectors without
+   needing higher specificity than `svg.lucide`. */
+@import 'components/lucide.css';
+
+@import 'components/button.css';
+@import 'components/card.css';
+@import 'components/input.css';
+@import 'components/badge.css';
+@import 'components/alert.css';
+@import 'components/modal.css';
+@import 'components/mono-block.css';
+@import 'components/status-pill.css';
+@import 'components/logs.css';
+@import 'components/notification.css';
+@import 'components/nav.css';
+
+@import 'layouts/app.css';
+@import 'layouts/auth.css';
+
+@import 'pages/dashboard.css';
+@import 'pages/wallet.css';
+@import 'pages/payment.css';
+@import 'pages/scan.css';
+@import 'pages/history.css';

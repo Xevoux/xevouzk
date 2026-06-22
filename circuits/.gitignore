@@ -1,0 +1,31 @@
+# ============================================
+# CIRCUITS FOLDER
+# ============================================
+
+# Node modules (regenerable via `npm install`)
+node_modules/
+
+# Powers of Tau (HUGE, ~19MB+, JANGAN commit per CLAUDE.md §4)
+# Download via `npm run download:ptau` atau `download:ptau:win`
+ptau/*
+!ptau/.gitkeep
+
+# Compile artifacts (regenerable via `npm run compile:all`)
+build/*
+!build/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# ============================================
+# YANG TETAP DI-COMMIT:
+# ============================================
+# ✅ *.circom               source circuit (kecil, source of truth)
+# ✅ scripts/*.js           build & test orchestration
+# ✅ package.json + lock    dependency manifest
+# ✅ README.md              dokumentasi circuit
+# ✅ keys/*_final.zkey      mirror final zkey (backup; kalau mau strip, hapus
+#                           dari sini dan andalkan public/zk/ saja)
+# ✅ keys/*_verification_key.json   small VK JSON (3KB), butuh untuk export
+# ============================================

@@ -1,0 +1,150 @@
+/* =============================================================
+   Card — surfaces for content panels.
+   ============================================================= */
+
+.card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-6);
+    position: relative;
+}
+
+.card--elevated {
+    box-shadow: var(--shadow-elevated);
+}
+
+.card--glow {
+    box-shadow: var(--shadow-elevated), var(--glow-soft);
+}
+
+.card--flat {
+    box-shadow: none;
+    border-color: var(--border-soft);
+}
+
+/* Subtle top-edge highlight to imply elevation under purple light */
+.card--elevated::before,
+.card--glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(216, 180, 254, 0.4),
+        transparent);
+    pointer-events: none;
+}
+
+.card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-bottom: var(--s-5);
+    padding-bottom: var(--s-4);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.card__title {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.card__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: var(--s-1);
+    display: block;
+}
+
+.card__body {
+    color: var(--text-secondary);
+}
+
+.card__footer {
+    margin-top: var(--s-5);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+}
+
+/* Corner brackets — purple L-shapes at each corner. Adds the
+   "engineering instrument" feel without a full border. */
+.card--bracketed {
+    background: transparent;
+    border: none;
+    padding: var(--s-6);
+}
+
+.card--bracketed::before,
+.card--bracketed::after,
+.card--bracketed > .corners::before,
+.card--bracketed > .corners::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--purple-500);
+    pointer-events: none;
+}
+
+.card--bracketed::before {
+    top: 0; left: 0;
+    border-right: none;
+    border-bottom: none;
+}
+.card--bracketed::after {
+    top: 0; right: 0;
+    border-left: none;
+    border-bottom: none;
+}
+.card--bracketed > .corners {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.card--bracketed > .corners::before {
+    bottom: 0; left: 0;
+    border-right: none;
+    border-top: none;
+}
+.card--bracketed > .corners::after {
+    bottom: 0; right: 0;
+    border-left: none;
+    border-top: none;
+}
+
+/* Legacy aliases */
+.wallet-card,
+.transactions-card,
+.payment-card,
+.scanner-card,
+.payment-confirmation,
+.transactions-table-card,
+.info-card,
+.zk-info,
+.features-info,
+.wallet-info-card,
+.qr-code-card,
+.faucet-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-6);
+    box-shadow: var(--shadow-elevated);
+    position: relative;
+}

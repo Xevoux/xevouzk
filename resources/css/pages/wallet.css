@@ -1,0 +1,535 @@
+/* =============================================================
+   Wallet page — full /wallet view (info + faucet + QR).
+   ============================================================= */
+
+.wallet-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: var(--s-5);
+}
+
+/* Baris ringkasan (row 1): info wallet + faucet berdampingan.
+   Di bawahnya QR, deposit, dan withdraw masing-masing full width supaya
+   tidak menyisakan sel kosong. */
+.wallet-info-card { grid-column: 1; grid-row: 1; }
+.faucet-card     { grid-column: 2; grid-row: 1; }
+.qr-code-card    { grid-column: 1 / -1; grid-row: 2; }
+.pool-card           { grid-column: 1 / -1; }
+.pool-card--deposit  { grid-row: 3; }
+.pool-card--withdraw { grid-row: 4; }
+
+@media (max-width: 1100px) {
+    .wallet-grid {
+        grid-template-columns: 1fr;
+    }
+    .wallet-info-card,
+    .faucet-card,
+    .qr-code-card,
+    .pool-card {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}
+
+.wallet-info-card h2,
+.qr-code-card h2,
+.faucet-card h2 {
+    margin-top: 0;
+    margin-bottom: var(--s-5);
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+
+.wallet-info-card h2 i,
+.qr-code-card h2 i,
+.faucet-card h2 i {
+    color: var(--purple-400);
+}
+
+.wallet-detail {
+    margin-bottom: var(--s-4);
+}
+
+.wallet-detail label {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: var(--s-2);
+    font-weight: var(--weight-medium);
+}
+
+.wallet-detail label i {
+    color: var(--purple-400);
+    opacity: 0.7;
+}
+
+.balance-display {
+    background:
+        linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(124, 58, 237, 0.05) 100%);
+    border: 1px solid var(--purple-700);
+    border-radius: var(--radius-lg);
+    padding: var(--s-5) var(--s-5);
+    position: relative;
+    overflow: hidden;
+}
+
+.balance-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple-400), transparent);
+}
+
+.balance-display .balance-amount {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 1.2rem + 2vw, 2.4rem);
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+    word-break: break-all;
+}
+
+/* Faucet — visually marked as TESTNET UTILITY */
+.faucet-card {
+    background: var(--bg-surface);
+    border: 1px dashed var(--purple-700);
+    position: relative;
+}
+
+.faucet-card::before {
+    content: 'TESTNET UTILITY';
+    position: absolute;
+    top: -10px;
+    left: var(--s-4);
+    padding: 2px var(--s-2);
+    background: var(--bg-deep);
+    border: 1px solid var(--purple-700);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--purple-300);
+    letter-spacing: 0.15em;
+    font-weight: var(--weight-medium);
+}
+
+.faucet-subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: var(--s-4);
+    line-height: 1.5;
+}
+
+.faucet-info-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-3);
+    margin-bottom: var(--s-4);
+}
+
+.faucet-stat {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    padding: var(--s-3);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+}
+
+.faucet-stat i {
+    font-size: 1.4rem;
+    color: var(--purple-400);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-void);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-sm);
+}
+
+.faucet-stat strong {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-weight: var(--weight-semi);
+}
+
+.faucet-stat small {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.faucet-status {
+    margin-top: var(--s-3);
+    padding: var(--s-3);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+}
+
+.faucet-status.success {
+    color: var(--signal-ok);
+    background: var(--signal-ok-bg);
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.faucet-status.error {
+    color: var(--signal-error);
+    background: var(--signal-error-bg);
+    border-color: rgba(248, 113, 113, 0.35);
+}
+
+.faucet-status.warning {
+    color: var(--signal-warn);
+    background: var(--signal-warn-bg);
+    border-color: rgba(251, 191, 36, 0.35);
+}
+
+.faucet-note {
+    margin-top: var(--s-4);
+    padding: var(--s-3) var(--s-4);
+    border-radius: var(--radius-md);
+    background: rgba(168, 85, 247, 0.05);
+    border: 1px solid var(--border-soft);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.faucet-note ul {
+    margin: var(--s-2) 0 0 var(--s-4);
+    padding: 0;
+}
+
+.faucet-note li {
+    margin-bottom: var(--s-1);
+}
+
+.faucet-note i {
+    color: var(--purple-400);
+    margin-right: var(--s-1);
+}
+
+/* QR Code card */
+.qr-display-area {
+    text-align: center;
+    margin: var(--s-4) 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-4);
+}
+
+.qr-code-container {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-2);
+    background: var(--bg-void);
+    padding: var(--s-4);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    position: relative;
+}
+
+.qr-code-container::before,
+.qr-code-container::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--purple-500);
+}
+
+.qr-code-container::before {
+    top: -1px;
+    left: -1px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.qr-code-container::after {
+    bottom: -1px;
+    right: -1px;
+    border-left: none;
+    border-top: none;
+}
+
+.qr-image {
+    max-width: 240px;
+    width: 100%;
+    background: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: var(--s-2);
+}
+
+.qr-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.qr-subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-bottom: var(--s-3);
+}
+
+/* QR URI string — alamat 0x + query bisa panjang & tak terpotong default,
+   paksa wrap supaya tidak mendorong horizontal scroll di layar sempit. */
+.qr-uri {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    margin: var(--s-2) 0;
+}
+
+/* Kartu QR kini full width — batasi lebar input nominal supaya tidak
+   melar selebar kartu di layar lebar. */
+.qr-code-card .form-group input {
+    max-width: 320px;
+}
+
+.qr-generator {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: var(--s-4);
+    margin-top: var(--s-4);
+}
+
+.qr-generator h3 {
+    margin-top: 0;
+    margin-bottom: var(--s-3);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.qr-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    margin-top: var(--s-3);
+}
+
+.qr-info {
+    margin-top: var(--s-4);
+    padding: var(--s-3) var(--s-4);
+    border-radius: var(--radius-md);
+    background: rgba(168, 85, 247, 0.05);
+    border: 1px solid var(--border-soft);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.qr-info ul {
+    margin: var(--s-2) 0 0 var(--s-4);
+}
+
+.qr-info i {
+    color: var(--purple-400);
+}
+
+/* Wallet quick-action buttons inside the wallet info card.
+   Use plain class selector (not direct-child) so it matches the actual
+   nested location: .wallet-container > .wallet-grid > .wallet-info-card
+   > .wallet-actions. */
+.wallet-info-card .wallet-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+}
+
+@media (max-width: 768px) {
+    .wallet-info-card .wallet-actions,
+    .faucet-info-box {
+        grid-template-columns: 1fr;
+    }
+    .wallet-info-card,
+    .qr-code-card,
+    .faucet-card {
+        padding: var(--s-4);
+    }
+    .balance-display { padding: var(--s-4); }
+    .balance-display .balance-amount { font-size: 1.6rem; }
+    .qr-image { max-width: 200px; }
+}
+
+@media (max-width: 480px) {
+    .wallet-grid { gap: var(--s-3); }
+    .wallet-info-card,
+    .qr-code-card,
+    .faucet-card {
+        padding: var(--s-3);
+    }
+    .wallet-info-card h2,
+    .qr-code-card h2,
+    .faucet-card h2 {
+        margin-bottom: var(--s-4);
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+    }
+    .faucet-card { margin-top: var(--s-2); }
+    .faucet-card::before {
+        font-size: 0.55rem;
+        padding: 2px var(--s-1);
+        letter-spacing: 0.12em;
+    }
+    .faucet-info-box .faucet-stat {
+        padding: var(--s-2);
+        gap: var(--s-2);
+    }
+    .faucet-stat i {
+        font-size: 1.1rem;
+        width: 32px;
+        height: 32px;
+    }
+    .faucet-stat strong { font-size: 0.85rem; }
+    .faucet-stat small { font-size: 0.62rem; }
+    .qr-image { max-width: 180px; }
+    .qr-label { font-size: 0.62rem; }
+    .balance-display .balance-amount { font-size: 1.4rem; }
+}
+
+/* Threshold ≤430 covers iPhone 14/15/16 Pro Max (430), Pixel 7/8 Pro (412),
+   Pixel 6/7 (393), iPhone 13/14 (390), iPhone SE (375), Galaxy S22 (360),
+   Galaxy Fold open (344) — the mainstream "small phone" device class. */
+@media (max-width: 430px) {
+    .wallet-info-card,
+    .qr-code-card,
+    .faucet-card {
+        padding: var(--s-3) var(--s-3);
+        border-radius: var(--radius-md);
+    }
+    .balance-display {
+        padding: var(--s-3);
+    }
+    .balance-display .balance-amount { font-size: 1.3rem; }
+    /* Alamat/public key panjang: kecilkan font biar lebih banyak muat per
+       baris & kurangi pemecahan baris yang janggal. */
+    .address-field code { font-size: 0.74rem; padding: var(--s-2) var(--s-3); }
+    .btn-copy,
+    .btn-toggle { min-width: 40px; padding: 0 var(--s-2); }
+    .faucet-card::before {
+        font-size: 0.55rem;
+        left: var(--s-3);
+        letter-spacing: 0.1em;
+    }
+    .faucet-subtitle { font-size: 0.78rem; }
+    .faucet-note { font-size: 0.75rem; padding: var(--s-2) var(--s-3); }
+    .faucet-stat {
+        padding: var(--s-2);
+    }
+    .qr-image { max-width: 170px; }
+    .qr-code-card .form-group input { max-width: 100%; }
+    .qr-code-container { padding: var(--s-3); }
+    .qr-uri { font-size: 0.72rem; }
+    .qr-info { font-size: 0.78rem; padding: var(--s-2) var(--s-3); }
+    .wallet-detail { margin-bottom: var(--s-3); }
+    .wallet-detail label {
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        gap: var(--s-1);
+    }
+    .wallet-info-card .wallet-actions {
+        margin-top: var(--s-4);
+        gap: var(--s-2);
+    }
+    .qr-generator { padding: var(--s-3); }
+    .qr-generator h3 { font-size: 0.7rem; }
+}
+
+/* Galaxy Fold class — extreme narrow. */
+@media (max-width: 360px) {
+    .wallet-info-card,
+    .qr-code-card,
+    .faucet-card {
+        padding: var(--s-2);
+    }
+    .balance-display { padding: var(--s-2) var(--s-3); }
+    .balance-display .balance-amount { font-size: 1.15rem; }
+    .qr-image { max-width: 150px; }
+}
+
+/* Saldo pool (privat) — dashboard */
+.balance-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(168, 138, 255, 0.12);
+    color: var(--purple-300, #c4b5fd);
+    vertical-align: middle;
+}
+.balance-tag--private {
+    background: rgba(16, 185, 129, 0.14);
+    color: #6ee7b7;
+}
+.pool-balance {
+    margin-top: var(--s-3, 0.75rem);
+    border-top: 1px solid rgba(168, 138, 255, 0.16);
+    padding-top: var(--s-3, 0.75rem);
+}
+.pool-balance .balance-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.btn-reveal {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid rgba(168, 138, 255, 0.3);
+    color: var(--purple-300, #c4b5fd);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-reveal:hover { background: rgba(168, 138, 255, 0.1); }
+.pool-balance-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted, #9aa);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+}
+.pool-balance[data-state="locked"] .balance-amount,
+.pool-balance[data-state="hidden"] .balance-amount { opacity: 0.5; letter-spacing: 0.1em; }

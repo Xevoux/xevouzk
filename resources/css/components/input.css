@@ -1,0 +1,146 @@
+/* =============================================================
+   Input, textarea, select, checkbox.
+   ============================================================= */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    margin-bottom: var(--s-4);
+}
+
+.form-group label,
+.form-label {
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: var(--weight-medium);
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.input,
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group input[type="search"],
+.form-group input[type="tel"],
+.form-group input[type="url"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: var(--s-3) var(--s-4);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    transition:
+        border-color var(--duration-fast) var(--ease-out),
+        background var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-base) var(--ease-out);
+}
+
+.input::placeholder,
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+    font-style: normal;
+}
+
+.input:hover,
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
+    border-color: var(--border-strong);
+}
+
+.input:focus,
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--purple-500);
+    background: var(--bg-surface);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+}
+
+/* Inputs whose value is cryptographic (address, hash, signature) */
+.input--mono,
+.form-group input[name="receiver_address"],
+.form-group input[name="schnorr_public_key"] {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    letter-spacing: 0.01em;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.5;
+}
+
+/* Checkbox — custom box with purple check */
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    user-select: none;
+    padding: var(--s-2) 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--purple-700);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    position: relative;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+
+.checkbox-label input[type="checkbox"]:hover {
+    border-color: var(--purple-500);
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    background: var(--purple-600);
+    border-color: var(--purple-500);
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--purple-100);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.form-hint,
+.form-group small {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.error-message {
+    display: block;
+    color: var(--signal-error);
+    font-size: 0.82rem;
+    margin-top: var(--s-1);
+}

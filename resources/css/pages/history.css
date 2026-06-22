@@ -1,0 +1,290 @@
+/* =============================================================
+   Transaction history page.
+   ============================================================= */
+
+.history-filters {
+    display: flex;
+    gap: var(--s-5);
+    padding: var(--s-4) var(--s-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    flex: 1;
+    min-width: 0;
+}
+
+.filter-group label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: var(--weight-medium);
+}
+
+.filter-group select {
+    padding: var(--s-3) var(--s-3);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--purple-500);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+}
+
+@media (max-width: 768px) {
+    .history-filters {
+        flex-direction: column;
+        gap: var(--s-3);
+    }
+}
+
+/* Table */
+.transactions-table-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-5);
+    box-shadow: var(--shadow-elevated);
+    overflow-x: auto;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.transactions-table thead th {
+    text-align: left;
+    padding: var(--s-3) var(--s-3);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: var(--weight-medium);
+    border-bottom: 1px solid var(--border-base);
+    background: transparent;
+    white-space: nowrap;
+}
+
+.transactions-table tbody td {
+    padding: var(--s-3);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+}
+
+.transactions-table tbody tr {
+    transition: background var(--duration-fast) var(--ease-out);
+}
+
+.transactions-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.04);
+}
+
+.transactions-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.transactions-table .amount {
+    font-family: var(--font-mono);
+    font-weight: var(--weight-semi);
+    font-size: 0.92rem;
+}
+
+.transactions-table .amount.negative {
+    color: var(--signal-error);
+}
+
+.transactions-table .amount.positive {
+    color: var(--signal-ok);
+}
+
+.transactions-table .text-center {
+    text-align: center;
+}
+
+/* External chain link */
+.blockchain-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--purple-400);
+    text-decoration: none;
+    padding: 2px var(--s-2);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        color var(--duration-fast) var(--ease-out);
+}
+
+.blockchain-link:hover {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: var(--purple-500);
+    color: var(--purple-300);
+}
+
+.blockchain-link::after {
+    content: '↗';
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    margin-left: 2px;
+}
+
+/* Hide the inline icon — `::after` content '↗' is the visible glyph.
+   Need to cover both <i data-lucide=...> (pre-Lucide-render) and
+   <svg class="lucide ..."> (post-render). Plain `i` selector misses
+   the svg, and `svg.lucide` from lucide.css has specificity (0,1,1)
+   which beats a bare `i` (0,0,1). Higher-specificity parent
+   qualifier ensures the hide wins. */
+.blockchain-link i,
+.blockchain-link svg.lucide,
+.blockchain-link [data-lucide] {
+    display: none;
+}
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--s-5);
+}
+
+.pagination {
+    display: inline-flex;
+    gap: var(--s-1);
+    list-style: none;
+    padding: 0;
+}
+
+.pagination li a,
+.pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 var(--s-3);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition:
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+}
+
+.pagination li a:hover {
+    border-color: var(--purple-500);
+    color: var(--purple-300);
+}
+
+.pagination li.active span {
+    background: var(--purple-600);
+    border-color: var(--purple-500);
+    color: var(--purple-100);
+}
+
+.pagination li.disabled span {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .transactions-table {
+        min-width: 720px;
+    }
+    .history-filters { padding: var(--s-3) var(--s-4); }
+    .transactions-table-card { padding: var(--s-3); }
+}
+
+@media (max-width: 480px) {
+    .history-filters {
+        padding: var(--s-3);
+        gap: var(--s-3);
+    }
+    .filter-group select {
+        padding: var(--s-2) var(--s-3);
+        font-size: 0.85rem;
+    }
+    .transactions-table thead th,
+    .transactions-table tbody td {
+        padding: var(--s-2);
+        font-size: 0.78rem;
+    }
+    .transactions-table thead th {
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+    }
+    .blockchain-link {
+        font-size: 0.7rem;
+        padding: 2px var(--s-1);
+    }
+    .pagination li a,
+    .pagination li span {
+        min-width: 32px;
+        height: 32px;
+        font-size: 0.78rem;
+        padding: 0 var(--s-2);
+    }
+}
+
+@media (max-width: 375px) {
+    .history-filters {
+        padding: var(--s-2) var(--s-3);
+        gap: var(--s-2);
+    }
+    .filter-group label { font-size: 0.62rem; letter-spacing: 0.1em; }
+    .filter-group select {
+        padding: var(--s-2);
+        font-size: 0.8rem;
+    }
+    .transactions-table-card {
+        padding: var(--s-2);
+        border-radius: var(--radius-md);
+    }
+    .transactions-table {
+        min-width: 640px;
+    }
+    .transactions-table thead th,
+    .transactions-table tbody td {
+        padding: var(--s-2) var(--s-1);
+        font-size: 0.72rem;
+    }
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px;
+    }
+    /* Keep usable tap target — 36px minimum even on smallest phones. */
+    .pagination li a,
+    .pagination li span {
+        min-width: 36px;
+        height: 36px;
+        font-size: 0.75rem;
+        padding: 0 var(--s-2);
+    }
+}

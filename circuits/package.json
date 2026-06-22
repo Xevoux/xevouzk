@@ -1,0 +1,32 @@
+{
+  "name": "xevouzk-circuits",
+  "version": "1.0.0",
+  "description": "Zero-Knowledge Proof circuits for XevouZK system",
+  "scripts": {
+    "install:circom": "echo 'Please install circom manually from https://docs.circom.io/getting-started/installation/'",
+    "download:ptau": "curl -L https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau -o ptau/pot14_final.ptau",
+    "download:ptau:win": "powershell -Command \"Invoke-WebRequest -Uri 'https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau' -OutFile 'ptau/pot14_final.ptau'\"",
+    "compile:balance": "circom balance_check.circom --r1cs --wasm --sym -o build/balance_check -l node_modules",
+    "compile:transfer": "circom private_transfer.circom --r1cs --wasm --sym -o build/private_transfer -l node_modules",
+    "compile:withdraw": "circom withdraw.circom --r1cs --wasm --sym -o build/withdraw -l node_modules",
+    "compile:all": "npm run compile:balance && npm run compile:transfer && npm run compile:withdraw",
+    "setup:balance": "node scripts/setup.js balance_check",
+    "setup:transfer": "node scripts/setup.js private_transfer",
+    "setup:withdraw": "node scripts/setup.js withdraw",
+    "setup:all": "npm run setup:balance && npm run setup:transfer && npm run setup:withdraw",
+    "export:keys": "node scripts/export-keys.js",
+    "export:verifiers": "node scripts/export-verifiers.js",
+    "build": "npm run compile:all && npm run setup:all && npm run export:keys && npm run export:verifiers",
+    "test": "node scripts/test-proofs.js",
+    "clean": "rimraf build keys ../contracts/contracts/verifiers"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.4",
+    "ffjavascript": "^0.3.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  }
+}

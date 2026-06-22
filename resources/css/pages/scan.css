@@ -1,0 +1,325 @@
+/* =============================================================
+   Scan QR page.
+   ============================================================= */
+
+/* Scanner kini satu kolom terpusat (panel Process Logs dihapus). */
+.scan-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s-5);
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.scan-left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-5);
+}
+
+.scanner-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-6);
+    box-shadow: var(--shadow-elevated);
+}
+
+/* Scanner viewport — corner brackets, no full border */
+.scanner-wrapper {
+    background: var(--bg-void);
+    border-radius: var(--radius-md);
+    padding: var(--s-5);
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.scanner-wrapper::before,
+.scanner-wrapper::after,
+.scanner-wrapper > .bracket-bl,
+.scanner-wrapper > .bracket-br {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--purple-500);
+    pointer-events: none;
+}
+
+.scanner-wrapper::before {
+    top: var(--s-3); left: var(--s-3);
+    border-right: none; border-bottom: none;
+}
+
+.scanner-wrapper::after {
+    top: var(--s-3); right: var(--s-3);
+    border-left: none; border-bottom: none;
+}
+
+/* Pseudo-elements for bottom corners — uses 1 nested div for compatibility */
+.scanner-wrapper {
+    box-shadow:
+        inset 24px -2px 0 -22px var(--purple-500),
+        inset -24px -2px 0 -22px var(--purple-500),
+        inset 2px -24px 0 -22px var(--purple-500),
+        inset -2px -24px 0 -22px var(--purple-500);
+}
+
+#reader {
+    width: 100%;
+    max-width: 500px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+#reader video {
+    border-radius: var(--radius-sm);
+}
+
+#manualInput {
+    width: 100%;
+}
+
+#manualInput h3 {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: var(--s-3);
+}
+
+.qr-input {
+    width: 100%;
+    min-height: 140px;
+    padding: var(--s-3) var(--s-4);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
+    color: var(--text-mono);
+    line-height: 1.5;
+    margin-bottom: var(--s-3);
+    resize: vertical;
+}
+
+.qr-input:focus {
+    outline: none;
+    border-color: var(--purple-500);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+}
+
+.scanner-actions {
+    display: flex;
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--border-soft);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Confirmation panel */
+.payment-confirmation {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-lg);
+    padding: var(--s-6);
+    box-shadow: var(--shadow-elevated), var(--glow-soft);
+    animation: confirm-slide-up var(--duration-slow) var(--ease-spring);
+    position: relative;
+}
+
+.payment-confirmation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple-400), transparent);
+}
+
+.payment-confirmation h2 {
+    margin: 0 0 var(--s-5) 0;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--purple-300);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+
+.payment-confirmation h2::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--purple-500);
+    box-shadow: 0 0 8px var(--purple-500);
+}
+
+.confirmation-details {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: var(--s-4);
+    margin-bottom: var(--s-5);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-3) 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: var(--weight-medium);
+}
+
+.detail-row span {
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    text-align: right;
+    overflow-wrap: anywhere;
+    max-width: 65%;
+}
+
+.amount-highlight {
+    font-family: var(--font-display) !important;
+    font-size: 1.3rem !important;
+    font-weight: var(--weight-bold);
+    color: var(--purple-300) !important;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: var(--s-3);
+}
+
+.confirmation-actions .btn {
+    flex: 1;
+}
+
+@keyframes confirm-slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .scanner-card,
+    .payment-confirmation { padding: var(--s-4); }
+    .scanner-wrapper {
+        min-height: 320px;
+        padding: var(--s-3);
+    }
+    .scanner-actions { flex-direction: column; }
+    .scanner-actions .btn { width: 100%; }
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--s-1);
+    }
+    .detail-row span {
+        max-width: 100%;
+        text-align: left;
+    }
+    .confirmation-actions { flex-direction: column-reverse; }
+    .confirmation-actions .btn { width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .scanner-card,
+    .payment-confirmation { padding: var(--s-3); }
+    .scanner-wrapper {
+        min-height: 280px;
+        padding: var(--s-2);
+    }
+    /* Scale corner brackets consistently — top via ::pseudo, bottom via
+       box-shadow inset trick. Keep them visually matched at small widths. */
+    .scanner-wrapper::before,
+    .scanner-wrapper::after {
+        width: 20px;
+        height: 20px;
+        top: var(--s-2);
+    }
+    .scanner-wrapper::before { left: var(--s-2); }
+    .scanner-wrapper::after { right: var(--s-2); }
+    .scanner-wrapper {
+        box-shadow:
+            inset 20px -2px 0 -18px var(--purple-500),
+            inset -20px -2px 0 -18px var(--purple-500),
+            inset 2px -20px 0 -18px var(--purple-500),
+            inset -2px -20px 0 -18px var(--purple-500);
+    }
+    .payment-confirmation h2 {
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+    }
+    .amount-highlight { font-size: 1.1rem !important; }
+    .qr-input {
+        min-height: 100px;
+        font-size: 0.8rem;
+        padding: var(--s-2) var(--s-3);
+    }
+}
+
+@media (max-width: 375px) {
+    .scanner-card,
+    .payment-confirmation {
+        padding: var(--s-3) var(--s-2);
+        border-radius: var(--radius-md);
+    }
+    .scanner-wrapper {
+        min-height: 240px;
+        padding: var(--s-2);
+    }
+    /* Brackets stay matched at 18px top + bottom for visual harmony. */
+    .scanner-wrapper::before,
+    .scanner-wrapper::after {
+        width: 18px;
+        height: 18px;
+    }
+    .scanner-wrapper {
+        box-shadow:
+            inset 18px -2px 0 -16px var(--purple-500),
+            inset -18px -2px 0 -16px var(--purple-500),
+            inset 2px -18px 0 -16px var(--purple-500),
+            inset -2px -18px 0 -16px var(--purple-500);
+    }
+    .qr-input {
+        min-height: 90px;
+        font-size: 0.75rem;
+        padding: var(--s-2);
+    }
+    .confirmation-details {
+        padding: var(--s-3);
+    }
+    .detail-row {
+        padding: var(--s-2) 0;
+    }
+    .detail-row label { font-size: 0.62rem; }
+    .detail-row span { font-size: 0.8rem; }
+    .amount-highlight { font-size: 1rem !important; }
+}

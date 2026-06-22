@@ -1,0 +1,208 @@
+/* =============================================================
+   App layout — wrapper for authenticated pages.
+   ============================================================= */
+
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    width: 100%;
+    max-width: var(--max-content);
+    margin: 0 auto;
+    padding: var(--s-6) var(--s-6);
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: var(--s-4) var(--s-3);
+    }
+    .page-header,
+    .dashboard-header,
+    .payment-header,
+    .scan-header,
+    .history-header,
+    .wallet-container > .wallet-header {
+        margin-bottom: var(--s-5);
+        padding-bottom: var(--s-4);
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: var(--s-3) var(--s-3) var(--s-5);
+    }
+    .dashboard-header h1,
+    .payment-header h1,
+    .scan-header h1,
+    .history-header h1,
+    .wallet-container > .wallet-header h1 {
+        font-size: 1.4rem;
+        gap: var(--s-2);
+    }
+    .page-header__eyebrow,
+    .dashboard-header > .page-header__eyebrow,
+    .payment-header > .page-header__eyebrow,
+    .scan-header > .page-header__eyebrow,
+    .history-header > .page-header__eyebrow,
+    .wallet-header > .page-header__eyebrow {
+        font-size: 0.62rem;
+        letter-spacing: 0.14em;
+    }
+    .dashboard-container,
+    .payment-container,
+    .scan-container,
+    .history-container,
+    .wallet-container {
+        gap: var(--s-4);
+    }
+}
+
+@media (max-width: 375px) {
+    .main-content {
+        padding: var(--s-3) var(--s-2) var(--s-4);
+    }
+    .dashboard-header h1,
+    .payment-header h1,
+    .scan-header h1,
+    .history-header h1,
+    .wallet-container > .wallet-header h1 {
+        font-size: 1.2rem;
+        gap: var(--s-2);
+    }
+    .dashboard-header,
+    .payment-header,
+    .scan-header,
+    .history-header,
+    .wallet-container > .wallet-header,
+    .page-header {
+        margin-bottom: var(--s-4);
+        padding-bottom: var(--s-3);
+    }
+    .dashboard-header p,
+    .payment-header p,
+    .scan-header p,
+    .history-header p,
+    .wallet-container > .wallet-header p,
+    .page-header__subtitle {
+        font-size: 0.82rem;
+    }
+}
+
+/* Page header — used by dashboard, payment, scan, history pages */
+.page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--s-5);
+    margin-bottom: var(--s-6);
+    padding-bottom: var(--s-5);
+    border-bottom: 1px solid var(--border-soft);
+    position: relative;
+}
+
+.page-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 80px;
+    height: 1px;
+    background: var(--purple-500);
+    box-shadow: 0 0 12px var(--purple-500);
+}
+
+.page-header__title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+}
+
+.page-header__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--purple-400);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.page-header__title h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.2rem);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+}
+
+.page-header__subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-top: var(--s-1);
+}
+
+.page-header__actions {
+    display: flex;
+    gap: var(--s-2);
+    flex-wrap: wrap;
+}
+
+/* Legacy header containers — used by the existing markup */
+.dashboard-header,
+.payment-header,
+.scan-header,
+.history-header,
+.wallet-header {
+    margin-bottom: var(--s-6);
+    padding-bottom: var(--s-5);
+    border-bottom: 1px solid var(--border-soft);
+    position: relative;
+}
+
+.dashboard-header::after,
+.payment-header::after,
+.scan-header::after,
+.history-header::after,
+.wallet-header.is-page::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 80px;
+    height: 1px;
+    background: var(--purple-500);
+    box-shadow: 0 0 12px var(--purple-500);
+}
+
+.dashboard-header h1,
+.payment-header h1,
+.scan-header h1,
+.history-header h1,
+.wallet-container > .wallet-header h1 {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    margin-bottom: var(--s-1);
+}
+
+.dashboard-header p,
+.payment-header p,
+.scan-header p,
+.history-header p,
+.wallet-container > .wallet-header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* Container layouts shared across pages */
+.dashboard-container,
+.payment-container,
+.scan-container,
+.history-container,
+.wallet-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-6);
+}
