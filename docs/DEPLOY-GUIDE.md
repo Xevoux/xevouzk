@@ -155,6 +155,10 @@ Pastikan proyek sudah ter-link ke Herd (`herd link xevouzk`), lalu buka `https:/
    - Network tab: POST `/register` hanya kirim `schnorr_public_key`, `polygon_address`, `polygon_public_key` — **tidak ada private key**
 2. **Login** → dashboard
 3. `/wallet` → **Request MATIC** → tunggu konfirmasi, saldo bertambah 5 MATIC
+   - Wallet baru = **0 MATIC**; butuh saldo untuk gas + nominal deposit. Kalau faucet
+     in-app gagal (saldo master rendah), pakai faucet publik
+     [faucet.polygon.technology](https://faucet.polygon.technology/) → jaringan **Amoy**
+     → tempel alamat Polygon Anda.
 4. `/wallet` → section "Pool Privat (ZKPayment)" → input `0.01` MATIC →
    **Sign & Deposit**
    - Prompt password

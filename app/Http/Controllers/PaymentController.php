@@ -6,7 +6,6 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Services\PolygonService;
 use App\Services\QRCodeService;
-use App\Services\ZKSNARKService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +15,6 @@ use Illuminate\Support\Facades\Log;
 class PaymentController extends Controller
 {
     public function __construct(
-        private ZKSNARKService $zkSnark,
         private PolygonService $polygon,
         private QRCodeService $qrCode,
     ) {
@@ -133,10 +131,9 @@ class PaymentController extends Controller
             ], 502);
         }
 
-        Log::info('[PaymentController] Raw tx relayed', [
-            'user_id' => Auth::id(),
-            'tx_hash' => $result['tx_hash'],
-        ]);
+        // PRIVASI: jangan log user_id↔tx_hash (relay generik tak bisa bedakan privat/
+        // publik). Cukup catat keberhasilan relay tanpa data yang menautkan.
+        Log::info('[PaymentController] Raw tx relayed');
 
         return response()->json([
             'success' => true,
@@ -300,15 +297,18 @@ class PaymentController extends Controller
         // disimpan (diabaikan walau dikirim). Deposit/withdraw → data publik, penuh.
         $isPrivate = in_array($type, ['private_transfer', 'private_receive'], true);
         $isReceive = $type === 'private_receive';
+        // Kirim & terima privat → simpan via receipt_ref opaque, TIDAK simpan polygon_tx_hash
+        // (memutus link akun↔tx on-chain di DB). Deposit/withdraw → publik, pakai tx_hash.
+        $usesReceiptRef = $isPrivate;
         $amount = $isPrivate ? null : ($validated['amount'] ?? null);
         $receiver = $isPrivate ? null : ($validated['receiver_address'] ?? null);
 
         // Kunci idempotensi (= transaction_hash, unik):
-        //  - PENERIMA privat → receipt_ref opaque dari client (TIDAK menyimpan tx_hash).
+        //  - privat (kirim/terima) → receipt_ref opaque dari client (TIDAK menyimpan tx_hash).
         //  - lainnya → hash(type|wallet|polygon_tx_hash); per (pelaku,type,tx) unik.
-        if ($isReceive) {
+        if ($usesReceiptRef) {
             if (empty($validated['receipt_ref'])) {
-                return response()->json(['success' => false, 'message' => 'receipt_ref wajib untuk private_receive'], 422);
+                return response()->json(['success' => false, 'message' => 'receipt_ref wajib untuk transfer privat'], 422);
             }
             $txHash = $validated['receipt_ref'];
         } else {
@@ -325,88 +325,26 @@ class PaymentController extends Controller
 
         $transaction = Transaction::create([
             'type' => $type,
-            // private_receive → user adalah PENERIMA; lainnya → user adalah PENGIRIM.
+            // private_receive → user adalah PENERIMA; lainnya (termasuk private_transfer) → PENGIRIM.
             'sender_wallet_id' => $isReceive ? null : $wallet->id,
             'receiver_wallet_id' => $isReceive ? $wallet->id : null,
             'receiver_address' => $receiver,
             'amount' => $amount,
             'transaction_hash' => $txHash,
-            // PENERIMA privat: TIDAK simpan polygon_tx_hash (memutus link S↔R di DB).
-            'polygon_tx_hash' => $isReceive ? null : $validated['polygon_tx_hash'],
+            // Privat (kirim/terima): TIDAK simpan polygon_tx_hash (memutus link ke chain).
+            'polygon_tx_hash' => $usesReceiptRef ? null : $validated['polygon_tx_hash'],
             'status' => 'completed',
         ]);
 
         Log::info('[PaymentController] Pool event recorded', [
             'user_id' => Auth::id(),
             'type' => $type,
-            // Untuk penerima privat tidak ada tx_hash yang dicatat (privasi).
-            'ref' => $isReceive ? 'receipt_ref(opaque)' : $validated['polygon_tx_hash'],
+            // Untuk transfer privat (kirim & terima) tidak ada tx_hash yang dicatat (privasi).
+            'ref' => $usesReceiptRef ? 'receipt_ref(opaque)' : $validated['polygon_tx_hash'],
             'amount_hidden' => $isPrivate,
         ]);
 
         return response()->json(['success' => true, 'transaction' => $transaction]);
-    }
-
-    /**
-     * Preview / sanity check withdraw proof sebelum
-     * browser submit ke kontrak. Server verify proof struct + nullifier guard
-     * supaya user tidak bayar gas untuk tx yang akan revert on-chain.
-     *
-     * Endpoint TIDAK relay tx — relay tetap lewat /payment/relay.
-     */
-    public function previewWithdraw(Request $request)
-    {
-        $request->validate([
-            'proof' => 'required|string',
-        ]);
-
-        $proof = $request->input('proof');
-        $ok = $this->zkSnark->verifyWithdrawProof($proof);
-
-        if (!$ok) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Withdraw proof invalid — kontrak akan tolak tx ini, jangan submit.',
-            ], 400);
-        }
-
-        $publicInputs = $this->zkSnark->extractWithdrawPublicInputs($proof);
-
-        Log::info('[PaymentController] Withdraw proof preview ok', [
-            'user_id' => Auth::id(),
-            'nullifier' => $publicInputs['nullifier'] ?? null,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'public_inputs' => $publicInputs,
-        ]);
-    }
-
-    /**
-     * Preview / sanity check private_transfer proof sebelum browser submit ke kontrak.
-     * Server verify struct + nullifier guard supaya user tak bayar gas untuk tx yang revert.
-     * TIDAK relay tx — relay tetap lewat /payment/relay.
-     */
-    public function previewTransfer(Request $request)
-    {
-        $request->validate(['proof' => 'required|string']);
-
-        $proof = $request->input('proof');
-        if (!$this->zkSnark->verifyTransferProof($proof)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Transfer proof invalid — kontrak akan tolak tx ini, jangan submit.',
-            ], 400);
-        }
-
-        $publicInputs = $this->zkSnark->extractTransferPublicInputs($proof);
-        Log::info('[PaymentController] Transfer proof preview ok', [
-            'user_id' => Auth::id(),
-            'nullifier' => $publicInputs['nullifier'] ?? null,
-        ]);
-
-        return response()->json(['success' => true, 'public_inputs' => $publicInputs]);
     }
 
     public function transactionHistory()

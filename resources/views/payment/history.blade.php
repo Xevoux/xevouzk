@@ -69,10 +69,28 @@
                         'label' => $outgoing ? 'SENT' : 'RECV',
                         'sign'  => $outgoing ? '−' : '+',
                     ];
+                    // Teks counterparty & nominal dipakai ulang oleh modal detail
+                    // (lewat data-* di baris) supaya privasi konsisten dgn tampilan tabel.
+                    $counterpartyFull = $isPrivate
+                        ? ($type === 'private_receive' ? 'Tersembunyi (masuk)' : 'Tersembunyi (keluar)')
+                        : ($type === 'faucet' ? 'Faucet (master)'
+                            : ($type === 'deposit' ? 'Pool Privat'
+                                : ($outgoing
+                                    ? ($transaction->receiverWallet->wallet_address ?? $transaction->receiver_address ?? '—')
+                                    : ($transaction->senderWallet->wallet_address ?? '—'))));
+                    $amountText = $isPrivate
+                        ? '••• MATIC'
+                        : trim($meta['sign'].' '.number_format((float) $transaction->amount, 6, '.', '')).' MATIC';
                 @endphp
                 <tr class="transaction-row"
                     data-status="{{ $transaction->status }}"
-                    data-type="{{ $rowDir }}">
+                    data-type="{{ $rowDir }}"
+                    data-tx-id="{{ $transaction->id }}"
+                    data-date="{{ $transaction->created_at->format('d M Y · H:i:s') }}"
+                    data-type-label="{{ $meta['label'] }}"
+                    data-counterparty="{{ $counterpartyFull }}"
+                    data-amount="{{ $amountText }}"
+                    data-privacy="{{ ($isPrivate || $transaction->zk_proof) ? 'PRIVATE' : 'PUBLIC' }}">
                     <td><span class="text-mono" style="font-size: 0.78rem; color: var(--text-secondary);">{{ $transaction->created_at->format('d M Y · H:i:s') }}</span></td>
                     <td>
                         <span class="badge badge--{{ $meta['badge'] }}"><i data-lucide="{{ $meta['icon'] }}"></i> {{ $meta['label'] }}</span>
@@ -116,17 +134,21 @@
                     </td>
                     <td>
                         @if($transaction->polygon_tx_hash)
-                            <a href="https://polygonscan.com/tx/{{ $transaction->polygon_tx_hash }}"
+                            <a href="https://amoy.polygonscan.com/tx/{{ $transaction->polygon_tx_hash }}"
                                target="_blank"
                                rel="noopener noreferrer"
                                class="blockchain-link"
-                               title="Lihat di Polygonscan">view</a>
+                               title="Lihat di Polygonscan (Amoy)">view</a>
+                        @elseif($type === 'private_transfer' && $outgoing)
+                            {{-- tx_hash sengaja TIDAK disimpan server (privasi 1b); link diisi
+                                 dari localStorage pengirim via JS, dicocokkan pakai send_ref. --}}
+                            <span class="onchain-local" data-send-ref="{{ $transaction->transaction_hash }}"><span class="text-muted">—</span></span>
                         @else
                             <span class="text-muted">—</span>
                         @endif
                     </td>
                     <td>
-                        <button class="btn-icon" onclick="showTransactionDetails('{{ $transaction->id }}')" title="Detail transaksi">
+                        <button class="btn-icon" onclick="showTransactionDetails(this)" title="Detail transaksi">
                             <i data-lucide="eye"></i>
                         </button>
                     </td>
@@ -182,31 +204,42 @@
         });
     }
 
-    function showTransactionDetails(transactionId) {
-        const modal = document.getElementById('transactionModal');
-        modal.classList.add('active');
+    // Detail dibangun dari data baris yang sudah dirender server (tanpa round-trip
+    // & tanpa endpoint baru): privasi sama persis dgn tabel (nominal/counterparty
+    // privat tetap tersembunyi). Link on-chain diambil dari sel baris agar ikut
+    // mencakup link lokal transfer privat (diisi dari localStorage di bawah).
+    function showTransactionDetails(btn) {
+        const row = btn.closest('tr');
+        if (!row) return;
+        const d = row.dataset;
+        document.getElementById('transactionModal').classList.add('active');
+
+        const link = row.querySelector('.blockchain-link');
+        const onchain = link
+            ? `<a href="${link.href}" target="_blank" rel="noopener noreferrer" class="blockchain-link">Lihat di Polygonscan ↗</a>`
+            : '<span class="text-muted">—</span>';
+        const privacyBadge = d.privacy === 'PRIVATE'
+            ? '<span class="badge badge--proof"><i data-lucide="lock"></i> PRIVATE</span>'
+            : '<span class="badge badge--info"><i data-lucide="globe"></i> PUBLIC</span>';
+        const sb = d.status === 'completed' ? 'ok' : (d.status === 'pending' ? 'warn' : 'error');
+        const statusBadge = `<span class="badge badge--${sb}">${(d.status || '').toUpperCase()}</span>`;
 
         document.getElementById('transactionDetails').innerHTML = `
-            <div class="loading">Loading...</div>
-        `;
-
-        setTimeout(() => {
-            document.getElementById('transactionDetails').innerHTML = `
-                <div class="detail-section">
-                    <h3>Informasi Transaksi</h3>
-                    <div class="confirmation-details" style="background: var(--bg-elevated); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--s-4);">
-                        <div class="detail-row">
-                            <label>Transaction ID</label>
-                            <span class="text-mono">${transactionId}</span>
-                        </div>
-                        <div class="detail-row">
-                            <label>Status</label>
-                            <span class="badge badge--ok">COMPLETED</span>
-                        </div>
-                    </div>
+            <div class="detail-section">
+                <h3>Informasi Transaksi</h3>
+                <div class="confirmation-details" style="background: var(--bg-elevated); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: var(--s-4);">
+                    <div class="detail-row"><label>Transaction ID</label><span class="text-mono">${d.txId}</span></div>
+                    <div class="detail-row"><label>Tanggal</label><span>${d.date}</span></div>
+                    <div class="detail-row"><label>Tipe</label><span>${d.typeLabel}</span></div>
+                    <div class="detail-row"><label>Counterparty</label><span class="text-mono">${d.counterparty}</span></div>
+                    <div class="detail-row"><label>Jumlah</label><span>${d.amount}</span></div>
+                    <div class="detail-row"><label>Status</label>${statusBadge}</div>
+                    <div class="detail-row"><label>Privasi</label>${privacyBadge}</div>
+                    <div class="detail-row"><label>On-Chain</label>${onchain}</div>
                 </div>
-            `;
-        }, 500);
+            </div>
+        `;
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
     }
 
     function closeModal() {
@@ -220,6 +253,23 @@
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') closeModal();
+    });
+
+    // Link explorer LOKAL untuk transfer privat keluar: tx_hash hanya ada di
+    // localStorage pengirim (server tak menyimpannya demi privasi 1b). Cocokkan
+    // baris ↔ entri lokal pakai send_ref (== transaction_hash baris).
+    document.querySelectorAll('.onchain-local').forEach(function(cell) {
+        const ref = cell.dataset.sendRef;
+        if (!ref) return;
+        try {
+            const raw = localStorage.getItem('xevouzk_sent_v1_' + ref);
+            if (!raw) return;
+            const tx = JSON.parse(raw).tx_hash;
+            if (!tx) return;
+            cell.innerHTML = '<a href="https://amoy.polygonscan.com/tx/' + tx +
+                '" target="_blank" rel="noopener noreferrer" class="blockchain-link"' +
+                ' title="Lihat di Polygonscan (Amoy) — link lokal">view</a>';
+        } catch (e) { /* abaikan */ }
     });
 </script>
 @endpush

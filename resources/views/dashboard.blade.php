@@ -107,32 +107,45 @@
 
         <div class="transactions-list" data-live="transactions">
             @forelse($recentTransactions as $transaction)
-            <div class="transaction-item {{ $transaction->sender_wallet_id == $wallet->id ? 'sent' : 'received' }}">
+            @php
+                // Selaraskan dengan halaman history + live-updates.js (txRow):
+                // privasi ditentukan oleh zk_proof ATAU type privat. Baris
+                // private_transfer/private_receive TIDAK menyimpan zk_proof,
+                // nominal, maupun counterparty (lihat PaymentController@recordPoolEvent),
+                // jadi ketiganya disembunyikan agar render statis = render live.
+                $sent = $transaction->sender_wallet_id == $wallet->id;
+                $isPrivate = $transaction->zk_proof
+                    || in_array($transaction->type, ['private_transfer', 'private_receive'], true);
+                $counterparty = $sent
+                    ? ($transaction->receiverWallet->wallet_address ?? $transaction->receiver_address ?? '—')
+                    : ($transaction->senderWallet->wallet_address ?? '—');
+                $label = $isPrivate
+                    ? ($sent ? 'Kirim privat' : 'Terima privat')
+                    : ($sent ? 'Kirim ke' : 'Terima dari');
+            @endphp
+            <div class="transaction-item {{ $sent ? 'sent' : 'received' }}">
                 <div class="transaction-icon">
-                    @if($transaction->sender_wallet_id == $wallet->id)
-                        <i data-lucide="arrow-up" style="color: var(--signal-error);"></i>
-                    @else
-                        <i data-lucide="arrow-down" style="color: var(--signal-ok);"></i>
-                    @endif
+                    <i data-lucide="{{ $sent ? 'arrow-up' : 'arrow-down' }}" style="color: {{ $sent ? 'var(--signal-error)' : 'var(--signal-ok)' }};"></i>
                 </div>
                 <div class="transaction-details">
                     <p class="transaction-type">
-                        @if($transaction->sender_wallet_id == $wallet->id)
-                            Kirim ke <span class="text-mono" style="color: var(--text-mono); font-size: 0.85em;">{{ Str::limit($transaction->receiverWallet->wallet_address ?? $transaction->receiver_address ?? '—', 18) }}</span>
-                        @else
-                            Terima dari <span class="text-mono" style="color: var(--text-mono); font-size: 0.85em;">{{ Str::limit($transaction->senderWallet->wallet_address ?? '—', 18) }}</span>
-                        @endif
+                        {{ $label }}
+                        <span class="text-mono" style="color: var(--text-mono); font-size: 0.85em;">{{ $isPrivate ? 'Tersembunyi' : Str::limit($counterparty, 18) }}</span>
                     </p>
                     <p class="transaction-date">{{ $transaction->created_at->format('d M Y · H:i') }}</p>
                 </div>
-                <div class="transaction-amount {{ $transaction->sender_wallet_id == $wallet->id ? 'negative' : 'positive' }}">
-                    {{ $transaction->sender_wallet_id == $wallet->id ? '−' : '+' }} {{ number_format($transaction->amount, 6, '.', '') }} MATIC
-                </div>
+                @if($isPrivate)
+                    <div class="transaction-amount" title="Nominal disembunyikan demi privasi (hanya commitment on-chain)">••• MATIC</div>
+                @else
+                    <div class="transaction-amount {{ $sent ? 'negative' : 'positive' }}">
+                        {{ $sent ? '−' : '+' }} {{ number_format($transaction->amount, 6, '.', '') }} MATIC
+                    </div>
+                @endif
                 <div class="transaction-status">
                     <span class="badge badge--{{ $transaction->status == 'completed' ? 'ok' : ($transaction->status == 'pending' ? 'warn' : 'error') }}">
                         {{ strtoupper($transaction->status) }}
                     </span>
-                    @if($transaction->zk_proof)
+                    @if($isPrivate)
                         <span class="badge badge--proof" title="Transaksi Privat dengan ZK-SNARK">
                             <i data-lucide="lock"></i> PRIVATE
                         </span>

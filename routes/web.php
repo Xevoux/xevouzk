@@ -70,8 +70,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/payment/scan-rpc', [PaymentController::class, 'scanRpc'])->name('payment.scan-rpc');
     Route::post('/payment/record-relay', [PaymentController::class, 'recordRelayTransfer'])->name('payment.record-relay');
     Route::post('/payment/record-event', [PaymentController::class, 'recordPoolEvent'])->name('payment.record-event');
-    Route::post('/payment/withdraw/verify', [PaymentController::class, 'previewWithdraw'])->name('payment.withdraw.verify');
-    Route::post('/payment/transfer/verify', [PaymentController::class, 'previewTransfer'])->name('payment.transfer.verify');
     Route::post('/payment/qr/scan', [PaymentController::class, 'scanQrApi'])->name('payment.qr.scan');
     Route::get('/payment/history', [PaymentController::class, 'transactionHistory'])->name('payment.history');
 });

@@ -88,10 +88,19 @@ export async function sendPrivate({
         transferAmountMatic: String(amount), contractAddress, csrfToken,
     });
 
-    // PRIVASI: catat ke riwayat HANYA tx_hash — nominal & penerima TIDAK dikirim
-    // ke server (disembunyikan demi klaim privasi). Best-effort.
+    // PRIVASI: server hanya menerima receipt_ref opaque (turunan senderSalt rahasia),
+    // BUKAN tx_hash → baris DB tak bisa di-JOIN ke chain. Nominal & penerima juga tak
+    // dikirim. Link explorer disimpan LOKAL di browser pengirim saja. Best-effort.
     if (r && r.success && r.tx_hash) {
-        await recordEvent({ type: 'private_transfer', polygonTxHash: r.tx_hash, csrfToken });
+        // Link explorer LOKAL untuk pengirim. Key = send_ref (== transaction_hash baris
+        // DB) agar halaman Riwayat bisa mencocokkan & menampilkan link 'view' tanpa server
+        // pernah tahu tx_hash. send_ref opaque (turunan salt rahasia) → aman di DOM sendiri.
+        try {
+            if (r.send_ref) {
+                localStorage.setItem(`xevouzk_sent_v1_${r.send_ref}`, JSON.stringify({ tx_hash: r.tx_hash, ts: Date.now() }));
+            }
+        } catch (e) { /* localStorage opsional */ }
+        await recordEvent({ type: 'private_transfer', receiptRef: r.send_ref, csrfToken });
     }
 
     return { ...r, note_matic: chosen.amount_matic };

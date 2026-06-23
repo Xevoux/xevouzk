@@ -7,7 +7,7 @@
 // 3. Pilih changeSalt + recipientSalt acak; recipientCommitment = Poseidon(amt, recipientShieldPub, recipientSalt)
 // 4. Groth16 fullProve(private_transfer)
 // 5. ECIES memo {amount_wei, salt, commitment} ke recipientEncPub
-// 6. (opsional) preview verify ke /payment/transfer/verify
+// 6. verifikasi proof LOKAL (zk-verify.js) — tanpa round-trip ke server
 // 7. Sign privateTransfer(a,b,c,pubSignals,memo) → /payment/relay
 // 8. Simpan note kembalian + mark note lama used
 
@@ -17,6 +17,7 @@ import * as snarkjs from 'snarkjs';
 import { amoyFloorFees } from './payment-relay.js';
 import { deriveShieldKeypair } from './shield-key.js';
 import { eciesEncrypt } from './note-crypto.js';
+import { verifyProofLocal } from './zk-verify.js';
 import {
     NOTE_PREFIX, NOTE_USED_PREFIX,
     deriveNoteEncryptionKey, decryptNote, saveNoteRecord,
@@ -92,6 +93,13 @@ export async function transferFromPool({
     const recipientCommitment = poseidon.F.toObject(poseidon([transferAmount, recipientShieldPubBn, recipientSalt]));
     const nullifier = poseidon.F.toObject(poseidon([shieldPriv, senderCommitment]));
 
+    // Ref opaque untuk riwayat kirim. WAJIB diturunkan dari rahasia yang TAK PERNAH
+    // on-chain (senderSalt) — JANGAN pakai nullifier (public di event PrivateTransfer,
+    // bisa direkomputasi → tautan pulih). senderCommitment on-chain, senderSalt rahasia.
+    const sendRef = ethers.sha256(ethers.toUtf8Bytes(
+        `xevou-send-v1:${senderCommitment.toString()}:${senderSalt.toString()}`,
+    )).slice(2); // buang prefix 0x → 64 hex
+
     // 4. Groth16 proof
     const witness = {
         amountIn: amountIn.toString(),
@@ -119,24 +127,14 @@ export async function transferFromPool({
         commitment: recipientCommitment.toString(),
     }, recipientEncPub);
 
-    // 6. Preview verify (best-effort, hemat gas kalau invalid)
+    // 6. Verifikasi proof LOKAL (hemat gas kalau invalid). Tak ada round-trip ke
+    // server → server tak lagi melihat commitment/nullifier pengirim.
     try {
-        const proofPayload = btoa(JSON.stringify({
-            proofType: 'private_transfer', proof, publicSignals,
-            publicInputs: {
-                senderCommitment: senderCommitment.toString(), nullifier: nullifier.toString(),
-                newSelfCommitment: newSelfCommitment.toString(), recipientCommitment: recipientCommitment.toString(),
-            },
-        }));
-        const pv = await fetch('/payment/transfer/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
-            body: JSON.stringify({ proof: proofPayload }),
-        });
-        const pb = await pv.json().catch(() => ({}));
-        if (!pv.ok || !pb.success) return { success: false, error: 'Preview verify gagal: ' + (pb.message || `HTTP ${pv.status}`) };
-    } catch (e) { console.warn('Preview verify error (lanjut):', e.message); }
+        const ok = await verifyProofLocal('private_transfer', proof, publicSignals);
+        if (!ok) return { success: false, error: 'Transfer proof invalid — kontrak akan tolak tx ini, jangan submit.' };
+    } catch (e) {
+        console.warn('Verify lokal gagal (lanjut, binding tetap on-chain):', e.message);
+    }
 
     // 7. Sign + relay
     const { privateKey, address } = window.PolygonKey.deriveWallet(email, password);
@@ -184,7 +182,7 @@ export async function transferFromPool({
     }
     markNoteUsed(storageKey, body.tx_hash);
 
-    return { success: true, tx_hash: body.tx_hash, nullifier: nullifier.toString(), change_storage_key: changeStorageKey };
+    return { success: true, tx_hash: body.tx_hash, nullifier: nullifier.toString(), send_ref: sendRef, change_storage_key: changeStorageKey };
 }
 
 // v2: bump prefix untuk meng-INVALIDASI cursor lama yang mungkin "teracun" —

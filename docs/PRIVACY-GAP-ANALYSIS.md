@@ -66,7 +66,7 @@ Untuk setiap data sensitif, di mana ia tampak dan dalam bentuk apa.
 | **Polygon private key** | ✅ derived deterministik per session (label `polygon_v1:`), tidak dipersist | ❌ **tidak pernah** | ❌ **tidak pernah** — tidak ada kolom `encrypted_private_key` | ❌ tidak pernah (signing di browser) |
 | **Polygon public key + address** | ✅ derived saat register, dikirim | ✅ disimpan `wallets.public_key` + `wallets.polygon_address` | ✅ cleartext | ✅ public oleh natur (address on-chain) |
 | Saldo Polygon nyata | ✅ ada saat generate proof | ✅ via PolygonService::syncWalletBalance | ✅ `wallets.balance` (DB shadow, di-sync dari blockchain) | ✅ `address.balance` di Amoy (PUBLIK by nature) |
-| Nominal transfer — **privat/pool** | ✅ user input | ❌ **tidak dikirim** — `recordEvent` privat hanya kirim `tx_hash`+`type` | ✅ **NULL** — tak disimpan untuk `private_transfer`/`private_receive` | ❌ tidak di-broadcast (hanya commitment Poseidon) |
+| Nominal transfer — **privat/pool** | ✅ user input | ❌ **tidak dikirim** — `recordEvent` privat (kirim & terima) hanya kirim `receipt_ref` opaque + `type`; sejak Tingkat 1, `tx_hash` **tak** dikirim | ✅ **NULL** — tak disimpan untuk `private_transfer`/`private_receive` | ❌ tidak di-broadcast (hanya commitment Poseidon) |
 | Nominal transfer — **plain/deposit/withdraw** | ✅ user input | ✅ `Request::amount` | ✅ `transactions.amount` cleartext | ✅ **publik on-chain** (value MATIC tx) — DB tidak bocorkan apa pun yang baru |
 | Recipient — **plain** (internal) | ✅ user input | ✅ lookup `wallets.wallet_address` | ✅ `transactions.receiver_wallet_id` (FK) | ⚠️ `to` field bila plain MATIC |
 | Recipient — **privat** | ✅ user input (viewing key) | ✅ baris `private_receive` simpan `receiver_wallet_id=R` saja; **tx_hash tidak dikirim** (M1) | ✅ `receiver_wallet_id=R` **tanpa** `polygon_tx_hash` → **tak joinable** ke baris pengirim (S↔R terputus; sisa korelasi waktu lemah). Lihat §3.I | ❌ tidak (hanya `recipientCommitment` Poseidon) |
@@ -308,6 +308,36 @@ Untuk setiap data sensitif, di mana ia tampak dan dalam bentuk apa.
 
 ---
 
+### L. Korelasi nominal — tanpa denominasi tetap (diakui sebagai batasan)
+
+- **Status**: ⚠️ **Batas privasi yang diakui jujur** (bukan gap custody). Komplemen
+  §3.H (graf commitment) pada sumbu berbeda: **nilai nominal**.
+- **Mekanisme aktual**: XevouZK **tidak** memakai **denominasi tetap**. Deposit
+  menerima nominal bebas (`msg.value` **publik** on-chain), withdraw mengeluarkan
+  nominal pasti (**publik** on-chain), dan `privateTransfer` memecah note jadi note
+  penerima (`transferAmount`) + note kembalian (sisa) — keduanya nominal **sembarang**
+  (tersembunyi sebagai commitment Poseidon, tetapi nilainya unik).
+- **Implikasi (korelasi nominal)**: meski `privateTransfer` tak menampilkan nominal
+  on-chain (value = 0, hanya commitment), nominal pada **titik ujung publik** (deposit
+  & withdraw) dapat **dikorelasikan**. Contoh: deposit `0.0137` lalu suatu saat
+  withdraw `0.0137` → nilai unik bertindak sebagai **sidik jari** yang menautkan kedua
+  ujung, walau commitment di antaranya tak di-reveal nilainya. Anonymity set yang kecil
+  + nominal sembarang memperkuat korelasi ini.
+- **Mitigasi yang dievaluasi (1d, 2026-06-23) — ditunda**: membatasi nominal ke
+  **pecahan baku** (pola Tornado / e-cash). Hanya model **whole-note** (kirim satu note
+  utuh, kembalian = 0, deposit pecahan baku) yang memberi denominasi seragam sungguhan;
+  itu **mengubah UX inti** (pilih "lembar", nominal non-baku butuh > 1 tx) → **ditunda
+  sebagai future work**. Versi ringan (denominasi deposit saja / kembalian bebas) nyaris
+  **kosmetik** karena kembalian & transfer sembarang memunculkan kembali korelasi.
+- **Klaim TA yang akurat**: "Nominal transaksi privat tidak ditampilkan on-chain (hanya
+  commitment), tetapi karena tidak ada denominasi tetap maupun anonymity set, nominal
+  pada titik ujung publik (deposit/withdraw) **dapat dikorelasikan**. Menyembunyikan
+  korelasi nominal adalah *future work* (denominasi tetap dan/atau anonymity set)."
+- **Klaim yang harus dihindari**: ❌ "Nominal sepenuhnya tak dapat ditelusuri /
+  deposit↔withdraw tak dapat dikorelasikan lewat nominal."
+
+---
+
 ## 4. Mitigasi follow-up (kalau klaim TA mau diperketat)
 
 | # | Gap | Action | Effort |
@@ -317,6 +347,7 @@ Untuk setiap data sensitif, di mana ia tampak dan dalam bentuk apa.
 | 3 | §3.D — nullifier double-check contract | Server query `isNullifierUsed` sebelum DB insert untuk trust-less penuh | M (1–2 jam) |
 | 4 | §3.E — qr_data encryption at-rest | Mutator encrypt di QRCode model | S (30 menit) |
 | 5 | ~~§3.I — DB link S↔R via `polygon_tx_hash` pada `private_receive`~~ | ✅ **SELESAI (M1)** — baris penerima tak simpan tx_hash; idempotensi `receipt_ref` opaque dari salt rahasia | — |
+| 6 | §3.L — korelasi nominal (tanpa denominasi tetap) | **Denominasi tetap** model whole-note/e-cash (deposit pecahan baku, transfer note utuh) — **dievaluasi 2026-06-23, ditunda** (ubah UX inti); alternatif kuat = **anonymity set Merkle** (§3.H). Versi ringan kosmetik. | L (future work) |
 
 #1 dan #2 selesaikan overclaim risk dengan cepat. #3 dan #4 bisa
 didokumentasikan sebagai future work, bukan blocker TA. #5 sudah ditutup — klaim
@@ -374,6 +405,10 @@ Klaim yang **harus dihindari**:
 - "Trustless / tidak butuh percaya server" (nullifier source of truth = DB,
   server bisa skip cek).
 - "Fully on-chain settlement" (path plain transfer tetap ada untuk fallback).
+- "Nominal transaksi sepenuhnya tak dapat ditelusuri / deposit↔withdraw tak dapat
+  dikorelasikan lewat nominal" — tanpa denominasi tetap & anonymity set, nominal di
+  titik ujung publik (deposit/withdraw) bisa menjadi sidik jari yang menautkan ujung
+  (§3.L). 1d (denominasi) dievaluasi 2026-06-23 lalu ditunda.
 - "Identitas sender transaksi privat tersembunyi" — `msg.sender = user` karena
   tx di-sign sendiri; yang tersembunyi nominal & penerima **di explorer publik**,
   bukan fakta bertransaksi. (Gasless relayer untuk menyembunyikan sender = future work.)

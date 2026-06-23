@@ -215,12 +215,18 @@ Tiga sirkuit (`balance_check.circom`, `private_transfer.circom`, `withdraw.circo
 3. Browser auto-derive Schnorr key, sign challenge `email|timestamp|csrf`, kirim **hanya signature**.
 4. Server verifikasi signature (login murni Schnorr, `Auth::attempt` dihapus) → `Auth::login` → dashboard. Hardening: single-use replay-nonce + rate limit per (email+IP).
 
-### 3. Request Test MATIC
+### 3. Isi Test MATIC (wallet baru kosong)
 
+> Wallet yang baru dibuat **kosong (0 MATIC)**. Anda butuh MATIC testnet Amoy untuk **gas setiap transaksi** *dan* untuk **nominal yang dideposit ke pool** — tanpa saldo, deposit/transaksi gagal `insufficient funds for gas`. Alamat Polygon Anda terlihat di `/wallet`.
+
+**Opsi A — Faucet in-app (paling cepat):**
 1. `/wallet` → tombol **Request MATIC**.
-2. Master wallet kirim 5 MATIC ke address Anda di Amoy.
+2. Master wallet kirim **5 MATIC** ke address Anda di Amoy (cooldown **24 jam**).
 3. Tx hash muncul di response — bisa di-cek di [amoy.polygonscan.com](https://amoy.polygonscan.com/).
-4. Cooldown 24 jam.
+
+**Opsi B — Faucet publik (kalau saldo master faucet habis):**
+- [faucet.polygon.technology](https://faucet.polygon.technology/) → pilih jaringan **Polygon Amoy** → tempel alamat Polygon Anda (dari `/wallet`).
+- Alternatif: faucet **Alchemy** / **QuickNode** untuk Amoy.
 
 ### 4. Buat QR untuk Menerima
 
@@ -254,7 +260,7 @@ Privasi memakai **commitment pool**, jadi alurnya melalui pool — semuanya **di
    - generate Groth16 `private_transfer` proof (snarkjs `fullProve`),
    - burn note lama (nullifier) + mint note kembalian (`newSelfCommitment`) + note penerima (`recipientCommitment`),
    - lampirkan memo ECIES untuk penerima,
-   - **(opsional)** pre-validasi proof via `/payment/transfer/verify` (hemat gas),
+   - **verifikasi proof lokal** via `zk-verify.js` (hemat gas; tanpa round-trip server),
    - **user sign** `privateTransfer(a,b,c,pubSignals,encryptedNote)` → `/payment/relay`.
    - On-chain hanya 4 hash Poseidon + nullifier + memo terenkripsi. `msg.sender = user`.
 3. **Penerima mendeteksi dana** — `/dashboard` → **Cek Transfer Masuk** menjalankan `scanIncomingNotes`: scan event `EncryptedNote`, trial-decrypt memo ECIES, simpan note yang cocok.
@@ -280,7 +286,7 @@ zk_wallet/
 │   │   ├── AuthController.php           # Register (non-custodial) + Schnorr login
 │   │   ├── DashboardController.php
 │   │   ├── WalletController.php         # Wallet info, faucet, receive-QR, decode-QR, liveState, pubkeys
-│   │   ├── PaymentController.php        # relay + recordRelay/recordPoolEvent + previewTransfer/previewWithdraw + scanRpc + QR
+│   │   ├── PaymentController.php        # relay + recordRelay/recordPoolEvent + scanRpc + QR (verify transfer/withdraw di klien: zk-verify.js)
 │   │   └── NoteBackupController.php     # Backup note terenkripsi lintas-device (store/index ciphertext opaque)
 │   ├── Models/                          # User, Wallet, Transaction, ZKProof, QRCode, NoteBackup
 │   └── Services/

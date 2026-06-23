@@ -6,7 +6,7 @@
 // 3. Generate Groth16 proof pakai snarkjs.fullProve(withdraw circuit, witness)
 // - public: [commitment, nullifier, recipient, amount]
 // - private: [shieldPriv, salt] (commitment = Poseidon(amount, Poseidon(shieldPriv), salt))
-// 4. (Optional) POST ke /payment/withdraw/verify untuk sanity check
+// 4. verifikasi proof LOKAL (zk-verify.js) — tanpa round-trip ke server
 // 5. Sign tx ZKPayment.withdraw(a, b, c, pubSignals) pakai user key
 // 6. POST raw hex ke /payment/relay
 // 7. Mark note used di localStorage
@@ -20,6 +20,7 @@ import * as snarkjs from 'snarkjs';
 import { amoyFloorFees } from './payment-relay.js';
 import { recordEvent } from './record-event.js';
 import { deriveShieldKeypair } from './shield-key.js';
+import { verifyProofLocal } from './zk-verify.js';
 import {
     NOTE_PREFIX, NOTE_USED_PREFIX,
     deriveNoteEncryptionKey, decryptNote, listNoteKeys, listNotes,
@@ -115,39 +116,17 @@ export async function withdrawFromPool({
         throw new Error(`snarkjs fullProve gagal: ${e.message}`);
     }
 
-    // 4. (Optional) Preview verify di server untuk save gas kalau invalid
+    // 4. Verifikasi proof LOKAL (hemat gas kalau invalid). Tanpa round-trip server.
     try {
-        const proofPayload = btoa(JSON.stringify({
-            proofType: 'withdraw',
-            proof,
-            publicSignals,
-            publicInputs: {
-                commitment: commitment.toString(),
-                nullifier: nullifier.toString(),
-                recipient: recipientUint.toString(),
-                amount: amountWei.toString(),
-            },
-        }));
-
-        const previewRes = await fetch('/payment/withdraw/verify', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify({ proof: proofPayload }),
-        });
-        const previewBody = await previewRes.json().catch(() => ({}));
-        if (!previewRes.ok || !previewBody.success) {
+        const ok = await verifyProofLocal('withdraw', proof, publicSignals);
+        if (!ok) {
             return {
                 success: false,
-                error: 'Preview verify gagal: ' + (previewBody.message || `HTTP ${previewRes.status}`),
+                error: 'Withdraw proof invalid — kontrak akan tolak tx ini, jangan submit.',
             };
         }
     } catch (e) {
-        console.warn('Preview verify error (lanjut tanpa preview):', e.message);
+        console.warn('Verify lokal gagal (lanjut, binding tetap on-chain):', e.message);
     }
 
     // 5. Encode + sign withdraw tx

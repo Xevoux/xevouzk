@@ -18,19 +18,12 @@ module.exports = {
     gasPrice: 35 // gwei — samakan dengan jaringan Amoy (networks.amoy.gasPrice)
   },
   networks: {
-    // Polygon Amoy Testnet (Mumbai deprecated)
+    // Polygon Amoy Testnet (pengganti Mumbai yang sudah dihentikan)
     amoy: {
       url: process.env.POLYGON_AMOY_RPC_URL || "https://rpc-amoy.polygon.technology/",
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
       chainId: 80002,
       gasPrice: 35000000000 // 35 gwei (increased for network requirements)
-    },
-    // Legacy Mumbai (deprecated - use Amoy instead)
-    mumbai: {
-      url: process.env.POLYGON_MUMBAI_RPC_URL || "https://rpc-mumbai.maticvigil.com/",
-      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
-      chainId: 80001,
-      gasPrice: 20000000000 // 20 gwei
     },
     // Polygon Mainnet
     polygon: {

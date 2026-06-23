@@ -31,8 +31,8 @@
       "_sha2-C-iwn1Nm.js"
     ]
   },
-  "_record-event-CsvGq6r0.js": {
-    "file": "assets/record-event-CsvGq6r0.js",
+  "_record-event-BB_EYt0e.js": {
+    "file": "assets/record-event-BB_EYt0e.js",
     "name": "record-event"
   },
   "_secp256k1-CVYOKr_J.js": {
@@ -58,6 +58,13 @@
   "_units-DouUq6th.js": {
     "file": "assets/units-DouUq6th.js",
     "name": "units"
+  },
+  "_zk-verify-DcASIkRR.js": {
+    "file": "assets/zk-verify-DcASIkRR.js",
+    "name": "zk-verify",
+    "imports": [
+      "_browser.esm-D_0p07fP.js"
+    ]
   },
   "resources/css/app.css": {
     "file": "assets/app-b9_2IP8M.css",
@@ -136,7 +143,7 @@
     ]
   },
   "resources/js/polygon-deposit.js": {
-    "file": "assets/polygon-deposit-Bx3V69uq.js",
+    "file": "assets/polygon-deposit-6WphRSnb.js",
     "name": "polygon-deposit",
     "src": "resources/js/polygon-deposit.js",
     "isEntry": true,
@@ -144,7 +151,7 @@
       "resources/js/shield-key.js",
       "_index-DXLj9f1R.js",
       "resources/js/payment-relay.js",
-      "_record-event-CsvGq6r0.js",
+      "_record-event-BB_EYt0e.js",
       "resources/js/note-store.js",
       "_units-DouUq6th.js",
       "_provider-jsonrpc-9_-XlvA0.js",
@@ -166,7 +173,7 @@
     ]
   },
   "resources/js/polygon-transfer.js": {
-    "file": "assets/polygon-transfer-wclblZ55.js",
+    "file": "assets/polygon-transfer-fIyUOGDG.js",
     "name": "polygon-transfer",
     "src": "resources/js/polygon-transfer.js",
     "isEntry": true,
@@ -176,8 +183,9 @@
       "_browser.esm-D_0p07fP.js",
       "resources/js/payment-relay.js",
       "resources/js/note-crypto.js",
+      "_zk-verify-DcASIkRR.js",
       "resources/js/note-store.js",
-      "_record-event-CsvGq6r0.js",
+      "_record-event-BB_EYt0e.js",
       "_provider-jsonrpc-9_-XlvA0.js",
       "_units-DouUq6th.js",
       "_sha2-C-iwn1Nm.js",
@@ -191,7 +199,7 @@
     ]
   },
   "resources/js/polygon-withdraw.js": {
-    "file": "assets/polygon-withdraw-CnNfjfDa.js",
+    "file": "assets/polygon-withdraw-CWCFidRY.js",
     "name": "polygon-withdraw",
     "src": "resources/js/polygon-withdraw.js",
     "isEntry": true,
@@ -200,7 +208,8 @@
       "_index-DXLj9f1R.js",
       "_browser.esm-D_0p07fP.js",
       "resources/js/payment-relay.js",
-      "_record-event-CsvGq6r0.js",
+      "_record-event-BB_EYt0e.js",
+      "_zk-verify-DcASIkRR.js",
       "resources/js/note-store.js",
       "_provider-jsonrpc-9_-XlvA0.js",
       "_units-DouUq6th.js",
@@ -224,7 +233,7 @@
     ]
   },
   "resources/js/private-send.js": {
-    "file": "assets/private-send-lYozN4Pu.js",
+    "file": "assets/private-send-DwtG2ejK.js",
     "name": "private-send",
     "src": "resources/js/private-send.js",
     "isEntry": true,
@@ -232,7 +241,7 @@
       "resources/js/xevou-uri.js",
       "resources/js/shield-key.js",
       "resources/js/note-store.js",
-      "_record-event-CsvGq6r0.js",
+      "_record-event-BB_EYt0e.js",
       "_index-DXLj9f1R.js",
       "_index-BAMY2Nnw.js",
       "_sha256-BXrfX6Da.js",
@@ -240,7 +249,7 @@
     ]
   },
   "resources/js/qr-scanner.js": {
-    "file": "assets/qr-scanner-wTeDuIHw.js",
+    "file": "assets/qr-scanner-brFkv0Ll.js",
     "name": "qr-scanner",
     "src": "resources/js/qr-scanner.js",
     "isEntry": true,
@@ -253,7 +262,7 @@
       "_sha256-BXrfX6Da.js",
       "resources/js/note-store.js",
       "_units-DouUq6th.js",
-      "_record-event-CsvGq6r0.js"
+      "_record-event-BB_EYt0e.js"
     ]
   },
   "resources/js/receive-qr.js": {

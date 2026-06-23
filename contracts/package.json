@@ -6,11 +6,9 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:amoy": "hardhat run scripts/deploy.js --network amoy",
-    "deploy:mumbai": "hardhat run scripts/deploy.js --network mumbai",
     "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
     "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
     "verify:amoy": "hardhat verify --network amoy",
-    "verify:mumbai": "hardhat verify --network mumbai",
     "verify:polygon": "hardhat verify --network polygon"
   },
   "devDependencies": {

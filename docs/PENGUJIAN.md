@@ -248,6 +248,9 @@ dikirim ke / disimpan di server.
 | `users.password` bukan password user | `SELECT password FROM users` | Hash acak placeholder (bukan bcrypt dari password user) |
 | Privasi on-chain | PolygonScan privateTransfer | Hanya hash Poseidon (lihat §1) |
 | Backup note opaque | `SELECT ref, ciphertext FROM note_backups` | Server hanya simpan ciphertext + ref hash, tak bisa decrypt (lihat [PRIVACY-GAP §3.J](PRIVACY-GAP-ANALYSIS.md)) |
+| Server tak terima proof/commitment transfer | DevTools → Network saat transfer/withdraw privat | **Tidak ada** `POST /payment/transfer/verify` atau `/payment/withdraw/verify` — verifikasi proof 100% di klien (`zk-verify.js`) |
+| DB tak menautkan pengirim privat ke tx on-chain | `SELECT type, polygon_tx_hash FROM transactions WHERE type='private_transfer'` | `polygon_tx_hash = NULL` (idempotensi via `receipt_ref` opaque turunan salt rahasia) — tak bisa di-JOIN ke blockchain |
+| Log server tak menautkan akun ke tx privat | `storage/logs/laravel.log` | "Raw tx relayed" tanpa `user_id`/`tx_hash`; "Pool event recorded" private_transfer ber-`ref: receipt_ref(opaque)` |
 
 Acuan demo lengkap: [PROJECT-STATUS §7 Skenario 0–1](PROJECT-STATUS.md#7-demo-script-untuk-ta-defense).
 

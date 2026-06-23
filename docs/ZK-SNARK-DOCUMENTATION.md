@@ -707,9 +707,8 @@ USER       BROWSER                                    SERVER          ZKPayment
  │          │   → senderCommitment(burn), nullifier,     │                 │
  │          │     newSelfCommitment, recipientCommitment │                 │
  │          │ ECIES memo {amount,salt,commitment}        │                 │
- │          │ POST /payment/transfer/verify (preview) ──▶│ verifyTransfer  │
- │          │ ◀──────────────────────────────────────────│  Proof (struct  │
- │          │  { ok, public_inputs }                     │  + nullifier DB)│
+ │          │ verify proof LOKAL (zk-verify.js)          │                 │
+ │          │   tak ada round-trip ke server             │                 │
  │          │ sign privateTransfer(a,b,c,pubSignals,memo)│  [USER key]     │
  │          │ POST /payment/relay { raw_tx } ───────────▶│ sendRawTx ─────▶│ privateTransfer
  │          │                                            │ (broadcast)     │  - pairing check
@@ -778,10 +777,8 @@ USER       BROWSER                                       SERVER    ZKPayment
  │          │                     recipient, amount }     │           │
  │          │ )                                           │           │
  │          │                                              │           │
- │          │ POST /payment/withdraw/verify (preview)     │           │
- │          │ ────────────────────────────────────────────▶│ verifyWithdrawProof
- │          │ { ok: true, public_inputs: {...} }          │           │
- │          │ ◀────────────────────────────────────────────│           │
+ │          │ verify proof LOKAL (zk-verify.js, hemat gas) │           │
+ │          │   tak ada round-trip ke server               │           │
  │          │                                              │           │
  │          │ build tx: ZKPayment.withdraw(a,b,c,pubSig)  │           │
  │          │ sign via ethers.js                          │           │
@@ -898,11 +895,11 @@ yang akurat & klaim yang harus dihindari.
 | File | Tanggung jawab |
 |---|---|
 | [`app/Services/SchnorrService.php`](../app/Services/SchnorrService.php) | Schnorr sign/verify secp256k1 + Fiat-Shamir |
-| [`app/Services/ZKSNARKService.php`](../app/Services/ZKSNARKService.php) | Struct validation Groth16 proof + nullifier DB lookup + verify {balance,transfer,withdraw} proof |
+| [`app/Services/ZKSNARKService.php`](../app/Services/ZKSNARKService.php) | Struct validation Groth16 proof + nullifier DB lookup + verify `balance_check` (verify transfer/withdraw kini di klien: `zk-verify.js`) |
 | [`app/Services/PolygonService.php`](../app/Services/PolygonService.php) | Web3 RPC + sendRawTransaction (non-custodial relay untuk semua tx user) + faucet send |
 | [`app/Services/QRCodeService.php`](../app/Services/QRCodeService.php) | Static + dynamic QR, HMAC signature, expiration |
 | [`app/Http/Controllers/AuthController.php`](../app/Http/Controllers/AuthController.php) | Register non-custodial + Schnorr login |
-| [`app/Http/Controllers/PaymentController.php`](../app/Http/Controllers/PaymentController.php) | relayRawTransaction, scanRpc (proxy getLogs read-only), recordRelayTransfer/recordPoolEvent, previewTransfer/previewWithdraw, QR scan |
+| [`app/Http/Controllers/PaymentController.php`](../app/Http/Controllers/PaymentController.php) | relayRawTransaction, scanRpc (proxy getLogs read-only), recordRelayTransfer/recordPoolEvent, QR scan (verify transfer/withdraw kini di klien: `zk-verify.js`) |
 | [`app/Http/Controllers/WalletController.php`](../app/Http/Controllers/WalletController.php) | Wallet info, faucet, QR delegation |
 | [`app/Http/Controllers/NoteBackupController.php`](../app/Http/Controllers/NoteBackupController.php) | Backup note terenkripsi lintas-device (store/index ciphertext opaque + ref) |
 

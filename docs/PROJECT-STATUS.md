@@ -167,9 +167,8 @@ pilih changeSalt + recipientSalt
 generate transfer proof
   (snarkjs.fullProve private_transfer)
 ECIES memo {amount,salt,commitment}
-POST /payment/transfer/verify ─►  verifyTransferProof
-  (preview, hemat gas)              (struct + nullifier DB)   ← TIDAK relay di sini
-◄──────────────────────────────  { ok, public_inputs }
+verify proof LOKAL (zk-verify.js)  ← tak ada round-trip ke server
+  (preview hemat gas; binding mengikat tetap on-chain)
 sign privateTransfer(a,b,c,
   pubSignals, encryptedNote)       [user key]
 POST /payment/relay ───────────►  sendRawTransaction ───────► ZKPayment.privateTransfer
@@ -218,8 +217,8 @@ metadata sender juga, gasless relayer bisa ditambahkan kelak tanpa redeploy
   `ZKPayment.deposit{value: amount}(commitment)` di browser, relay via
   `/payment/relay`.
 - **Withdraw**: browser decrypt note, generate Groth16 proof via
-  `snarkjs.fullProve` (~5–30 detik), preview validity via
-  `POST /payment/withdraw/verify`, sign tx
+  `snarkjs.fullProve` (~5–30 detik), **verifikasi proof lokal** (`zk-verify.js`,
+  hemat gas), sign tx
   `ZKPayment.withdraw(a, b, c, pubSignals)`, relay via `/payment/relay`.
   Recipient + amount adalah public signals (sengaja transparan — ujung "fiat
   ramp"). Full-burn semantics: tidak ada partial withdraw; untuk partial,
@@ -419,7 +418,7 @@ app/Services/
 
 app/Http/Controllers/
 ├── AuthController.php           Register non-custodial + Schnorr-only login (replay-nonce + rate limit)
-├── PaymentController.php        relayRawTransaction + scanRpc (proxy getLogs) + recordRelayTransfer + recordPoolEvent + previewTransfer/previewWithdraw + QR scan
+├── PaymentController.php        relayRawTransaction + scanRpc (proxy getLogs) + recordRelayTransfer + recordPoolEvent + QR scan  (verify transfer/withdraw kini di klien: zk-verify.js)
 ├── WalletController.php         Wallet info + faucet + receive-QR/decode-QR + liveState + publishPubkeys
 └── NoteBackupController.php     Backup note terenkripsi lintas-device (store/index ciphertext opaque)
 ```

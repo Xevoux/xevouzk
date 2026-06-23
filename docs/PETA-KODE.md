@@ -37,8 +37,9 @@ Browser (resources/js)            Server (Laravel)              Blockchain (Amoy
 ─────────────────────             ────────────────              ─────────────────
 polygon-transfer.js               routes/web.php                ZKPayment.sol
   transferFromPool()      ──┐       └─> PaymentController          privateTransfer()
-   • decrypt note          │            previewTransfer() ──> ZKSNARKService
-   • Groth16 fullProve     │            relayRawTransaction() ─> PolygonService ──> RPC
+   • decrypt note          │            relayRawTransaction() ─> PolygonService ──> RPC
+   • Groth16 fullProve     │            (verify proof: LOKAL via zk-verify.js)
+   • verify LOKAL          │
    • sign tx (ethers)      │
    • POST /payment/relay ──┘
 ```
@@ -67,9 +68,9 @@ Aturan emas yang tercermin di kode:
 | [web.php:70](../routes/web.php#L70) | `POST /payment/scan-rpc` | `PaymentController@scanRpc` | Proxy RPC read-only (scan getLogs) — API key tetap di server |
 | [web.php:71](../routes/web.php#L71) | `POST /payment/record-relay` | `PaymentController@recordRelayTransfer` | Catat transfer plain ke riwayat (informatif) |
 | [web.php:72](../routes/web.php#L72) | `POST /payment/record-event` | `PaymentController@recordPoolEvent` | Catat event pool (deposit/withdraw/private) ke riwayat — privacy-preserving |
-| [web.php:73](../routes/web.php#L73) | `POST /payment/withdraw/verify` | `PaymentController@previewWithdraw` | Pra-cek withdraw proof |
-| [web.php:74](../routes/web.php#L74) | `POST /payment/transfer/verify` | `PaymentController@previewTransfer` | Pra-cek transfer proof |
-| [web.php:75](../routes/web.php#L75) | `POST /payment/qr/scan` | `PaymentController@scanQrApi` | Decode QR (static/dynamic) |
+| [web.php:73](../routes/web.php#L73) | `POST /payment/qr/scan` | `PaymentController@scanQrApi` | Decode QR (static/dynamic) |
+
+> **Pra-cek proof transfer & withdraw kini di sisi klien** ([resources/js/zk-verify.js](../resources/js/zk-verify.js), `verifyProofLocal`) — endpoint `POST /payment/{transfer,withdraw}/verify` **dihapus** supaya server tak lagi menerima commitment/nullifier pengirim. Binding yang mengikat tetap on-chain.
 
 > Semua route di [web.php:25](../routes/web.php#L25) ke bawah dibungkus middleware `auth`
 > (harus login). Route auth ([web.php:13](../routes/web.php#L13)) dibungkus `guest`.
@@ -103,13 +104,13 @@ Orkestrasi pembayaran. **Tidak menyimpan private key**; hanya relay & pra-valida
 | Baris | Method | Apa yang dikerjakan |
 |---|---|---|
 | [PaymentController.php:68-114](../app/Http/Controllers/PaymentController.php#L68-L114) | `scanQrApi()` | Decode QR: coba JSON static, kalau gagal decrypt dynamic. |
-| [PaymentController.php:116-145](../app/Http/Controllers/PaymentController.php#L116-L145) | `relayRawTransaction()` | **Jantung non-custodial.** Terima `raw_tx` hex hasil sign browser, broadcast via `PolygonService::sendRawTransaction`. |
+| [PaymentController.php:114-143](../app/Http/Controllers/PaymentController.php#L114-L143) | `relayRawTransaction()` | **Jantung non-custodial.** Terima `raw_tx` hex hasil sign browser, broadcast via `PolygonService::sendRawTransaction`. **Log sukses tak lagi mencatat `user_id↔tx_hash`** (privasi). |
 | [PaymentController.php:159-199](../app/Http/Controllers/PaymentController.php#L159-L199) | `scanRpc()` | **Proxy RPC read-only** untuk scan dana masuk. Whitelist method (`eth_getLogs`/`eth_call`/dst, [:181-185](../app/Http/Controllers/PaymentController.php#L181-L185)), teruskan ke `services.polygon.scan_rpc_url` ber-API-key — **kunci API tak pernah ke browser**. Bukan relay tulis. |
 | [PaymentController.php:213-259](../app/Http/Controllers/PaymentController.php#L213-L259) | `recordRelayTransfer()` | Catat transfer plain ke riwayat. Idempoten terhadap `polygon_tx_hash` ([:225](../app/Http/Controllers/PaymentController.php#L225)). **Tidak** memutasi saldo (saldo dari RPC). |
-| [PaymentController.php:286-348](../app/Http/Controllers/PaymentController.php#L286-L348) | `recordPoolEvent()` | Catat event pool (`deposit`/`withdraw`/`private_transfer`/`private_receive`). **Privacy-preserving**: untuk jalur privat, nominal & counterparty **diabaikan** (null) ([:301-304](../app/Http/Controllers/PaymentController.php#L301-L304)); penerima privat idempoten via `receipt_ref` opaque **tanpa** simpan `polygon_tx_hash` ([:309-335](../app/Http/Controllers/PaymentController.php#L309-L335), mitigasi M1). |
-| [PaymentController.php:357-384](../app/Http/Controllers/PaymentController.php#L357-L384) | `previewWithdraw()` | Pra-cek withdraw proof via `ZKSNARKService::verifyWithdrawProof` ([:364](../app/Http/Controllers/PaymentController.php#L364)) — hemat gas user. |
-| [PaymentController.php:391-410](../app/Http/Controllers/PaymentController.php#L391-L410) | `previewTransfer()` | Pra-cek transfer proof via `verifyTransferProof` ([:396](../app/Http/Controllers/PaymentController.php#L396)). |
-| [PaymentController.php:412](../app/Http/Controllers/PaymentController.php#L412) | `transactionHistory()` | Tampilkan riwayat (paginate 20). |
+| [PaymentController.php:283-345](../app/Http/Controllers/PaymentController.php#L283-L345) | `recordPoolEvent()` | Catat event pool (`deposit`/`withdraw`/`private_transfer`/`private_receive`). **Privacy-preserving**: untuk jalur privat (kirim **dan** terima), nominal & counterparty **diabaikan** (null) dan idempoten via `receipt_ref` opaque **tanpa** simpan `polygon_tx_hash` — memutus link akun↔tx on-chain di DB (mitigasi M1). |
+| [PaymentController.php:350](../app/Http/Controllers/PaymentController.php#L350) | `transactionHistory()` | Tampilkan riwayat (paginate 20). |
+
+> Pra-cek proof (`previewTransfer`/`previewWithdraw`) **dihapus** — verifikasi kini lokal di klien ([zk-verify.js](../resources/js/zk-verify.js)).
 
 ### 3.3 WalletController — [app/Http/Controllers/WalletController.php](../app/Http/Controllers/WalletController.php)
 
@@ -157,18 +158,17 @@ Verifikasi tanda tangan Schnorr login. **Harus byte-identik dengan
 
 ### 4.2 ZKSNARKService — [app/Services/ZKSNARKService.php](../app/Services/ZKSNARKService.php)
 
-**Verifikasi Groth16 + guard nullifier di server** (pra-cek sebelum on-chain).
+**Verifikasi Groth16 + guard nullifier di server.** Pra-cek `private_transfer` & `withdraw`
+**sudah dipindah ke klien** ([zk-verify.js](../resources/js/zk-verify.js)); method `verify/extract`
+transfer & withdraw di service ini **dihapus**. Sisa di server: verifikasi `balance_check`
++ helper pairing/field.
 
 | Baris | Method | Fungsi |
 |---|---|---|
 | [ZKSNARKService.php:44](../app/Services/ZKSNARKService.php#L44) | `verifyBalanceProof()` | Verifikasi proof `balance_check` |
-| [ZKSNARKService.php:120](../app/Services/ZKSNARKService.php#L120) | `verifyWithdrawProof()` | Verifikasi proof `withdraw` (dipakai `previewWithdraw`) |
-| [ZKSNARKService.php:200](../app/Services/ZKSNARKService.php#L200) | `extractWithdrawPublicInputs()` | Ambil `[commitment, nullifier, recipient, amount]` |
-| [ZKSNARKService.php:220](../app/Services/ZKSNARKService.php#L220) | `verifyTransferProof()` | Verifikasi proof `private_transfer` (dipakai `previewTransfer`) |
-| [ZKSNARKService.php:274](../app/Services/ZKSNARKService.php#L274) | `extractTransferPublicInputs()` | Ambil 4 public signal transfer |
-| [ZKSNARKService.php:294](../app/Services/ZKSNARKService.php#L294) | `verifyGroth16Proof()` | Inti pairing-check (private helper) |
-| [ZKSNARKService.php:338](../app/Services/ZKSNARKService.php#L338) | `loadVerificationKey()` | Muat `verification_key.json` per circuit |
-| [ZKSNARKService.php:366-407](../app/Services/ZKSNARKService.php#L366-L407) | `validateG1/G2Point`, `isValidFieldElement` | Validasi titik kurva & elemen field |
+| [ZKSNARKService.php:116](../app/Services/ZKSNARKService.php#L116) | `verifyGroth16Proof()` | Inti pairing-check (private helper) |
+| [ZKSNARKService.php:160](../app/Services/ZKSNARKService.php#L160) | `loadVerificationKey()` | Muat `verification_key.json` per circuit |
+| [ZKSNARKService.php:188-229](../app/Services/ZKSNARKService.php#L188-L229) | `validateG1/G2Point`, `isValidFieldElement` | Validasi titik kurva & elemen field |
 | [ZKSNARKService.php:542](../app/Services/ZKSNARKService.php#L542) | `verifyNullifier()` | Cek nullifier belum dipakai (cache DB) |
 | [ZKSNARKService.php:559](../app/Services/ZKSNARKService.php#L559) | `markNullifierUsed()` | Tandai nullifier terpakai |
 
@@ -282,7 +282,7 @@ penerima + memilih note pool terkecil yang cukup, lalu memanggil `transferFromPo
 | 3 | [:87-93](../resources/js/polygon-transfer.js#L87-L93) | Hitung `newSelfCommitment` (kembalian), `recipientCommitment`, `nullifier` (Poseidon) |
 | 4 | [:95-113](../resources/js/polygon-transfer.js#L95-L113) | **Groth16 `fullProve`** witness `private_transfer` |
 | 5 | [:115-120](../resources/js/polygon-transfer.js#L115-L120) | Bungkus note penerima jadi memo **ECIES** |
-| 6 | [:122-139](../resources/js/polygon-transfer.js#L122-L139) | Preview verify ke `/payment/transfer/verify` (hemat gas) |
+| 6 | [:122-128](../resources/js/polygon-transfer.js#L122-L128) | **Verify proof LOKAL** (`zk-verify.js`, hemat gas) — tanpa round-trip server |
 | 7 | [:141-174](../resources/js/polygon-transfer.js#L141-L174) | **User sign sendiri** `privateTransfer`, POST `/payment/relay` |
 | 8 | [:176-187](../resources/js/polygon-transfer.js#L176-L187) | Simpan note kembalian (`saveNoteRecord`) + tandai note lama used |
 
@@ -298,7 +298,7 @@ Probe range besar→kecil + `isRangeError` ([:236](../resources/js/polygon-trans
 
 ### 6.5 Withdraw — [polygon-withdraw.js](../resources/js/polygon-withdraw.js)
 
-Decrypt note → Groth16 `withdraw` → preview `/payment/withdraw/verify` → sign & relay tx `withdraw`.
+Decrypt note → Groth16 `withdraw` → **verifikasi proof lokal** (`zk-verify.js`) → sign & relay tx `withdraw`.
 Full-burn (`amount == balance` note).
 
 ### 6.6 Note (penyimpanan & kripto) & utilitas lain
@@ -421,15 +421,15 @@ Tabel cepat "saya mau lihat fitur X, mulai dari mana":
 |---|---|---|---|
 | **Register non-custodial** | derive 3 key ([polygon-key.js](../resources/js/polygon-key.js), [schnorr-auth.js](../resources/js/schnorr-auth.js), [shield-key.js](../resources/js/shield-key.js)) | [AuthController@register :36](../app/Http/Controllers/AuthController.php#L36) | — |
 | **Login Schnorr** | [schnorr-auth.js@sign :36](../resources/js/schnorr-auth.js#L36) | [AuthController@verifySchnorrLogin :151](../app/Http/Controllers/AuthController.php#L151) + [SchnorrService@verify :65](../app/Services/SchnorrService.php#L65) | — |
-| **Deposit** | [polygon-deposit.js@depositToPool :52](../resources/js/polygon-deposit.js#L52) | [PaymentController@relayRawTransaction :116](../app/Http/Controllers/PaymentController.php#L116) | [ZKPayment@deposit :76](../contracts/contracts/ZKPayment.sol#L76) |
-| **Transfer privat** | [polygon-transfer.js@transferFromPool :60](../resources/js/polygon-transfer.js#L60) | [PaymentController@previewTransfer :391](../app/Http/Controllers/PaymentController.php#L391) + `relay` | [ZKPayment@privateTransfer :105](../contracts/contracts/ZKPayment.sol#L105) |
+| **Deposit** | [polygon-deposit.js@depositToPool :52](../resources/js/polygon-deposit.js#L52) | [PaymentController@relayRawTransaction :114](../app/Http/Controllers/PaymentController.php#L114) | [ZKPayment@deposit :76](../contracts/contracts/ZKPayment.sol#L76) |
+| **Transfer privat** | [polygon-transfer.js@transferFromPool :60](../resources/js/polygon-transfer.js#L60) | verify lokal ([zk-verify.js](../resources/js/zk-verify.js)) + `relay` | [ZKPayment@privateTransfer :105](../contracts/contracts/ZKPayment.sol#L105) |
 | **Terima (scan note)** | [polygon-transfer.js@scanIncomingNotes :284](../resources/js/polygon-transfer.js#L284) | [PaymentController@scanRpc :159](../app/Http/Controllers/PaymentController.php#L159) (proxy getLogs; decrypt di klien) | event `EncryptedNote` ([ZKPayment.sol:46](../contracts/contracts/ZKPayment.sol#L46)) |
-| **Withdraw** | [polygon-withdraw.js](../resources/js/polygon-withdraw.js) | [PaymentController@previewWithdraw :357](../app/Http/Controllers/PaymentController.php#L357) + `relay` | [ZKPayment@withdraw :143](../contracts/contracts/ZKPayment.sol#L143) |
+| **Withdraw** | [polygon-withdraw.js](../resources/js/polygon-withdraw.js) | verify lokal ([zk-verify.js](../resources/js/zk-verify.js)) + `relay` | [ZKPayment@withdraw :143](../contracts/contracts/ZKPayment.sol#L143) |
 | **QR (static/dynamic)** | [qr-scanner.js](../resources/js/qr-scanner.js), [receive-qr.js](../resources/js/receive-qr.js) | [PaymentController@scanQrApi :68](../app/Http/Controllers/PaymentController.php#L68) + [QRCodeService](../app/Services/QRCodeService.php) | — |
 | **Faucet test MATIC** | UI dashboard | [WalletController@requestTestMatic :312](../app/Http/Controllers/WalletController.php#L312) + [FaucetService](../app/Services/FaucetService.php) | tx dari MASTER wallet |
 | **Backup note lintas-device** | [note-backup.js](../resources/js/note-backup.js) (hook di [note-store.js:118](../resources/js/note-store.js#L118)) | [NoteBackupController@store :18](../app/Http/Controllers/NoteBackupController.php#L18) | — (off-chain, ciphertext opaque) |
 | **Account guard (cek password)** | [account-guard.js@assertPassword](../resources/js/account-guard.js) | — (verifikasi 100% di klien) | — |
-| **Anti double-spend** | hitung nullifier ([polygon-transfer.js:93](../resources/js/polygon-transfer.js#L93)) | [ZKSNARKService@verifyNullifier :542](../app/Services/ZKSNARKService.php#L542) | `nullifiers` mapping ([ZKPayment.sol:33](../contracts/contracts/ZKPayment.sol#L33)) |
+| **Anti double-spend** | hitung nullifier ([polygon-transfer.js:93](../resources/js/polygon-transfer.js#L93)) | [ZKSNARKService@verifyNullifier :364](../app/Services/ZKSNARKService.php#L364) | `nullifiers` mapping ([ZKPayment.sol:33](../contracts/contracts/ZKPayment.sol#L33)) |
 
 ---
 

@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $recentTransactions = Transaction::where('sender_wallet_id', $wallet->id)
             ->orWhere('receiver_wallet_id', $wallet->id)
             ->orderBy('created_at', 'desc')
-            ->take(10)
+            ->take(5)
             ->get();
 
         return view('dashboard', compact('wallet', 'recentTransactions'));

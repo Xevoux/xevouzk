@@ -12,6 +12,8 @@
 >
 > **Status**: Update 2026-06-22: (1) **backup note terenkripsi lintas-device** + **account guard** (§7.10); (2) penemuan dana masuk kini lewat **proxy server `/payment/scan-rpc`** agar RPC ber-API-key tetap di server (§7.5); (3) suite **PHPUnit dihapus** dari repo — bukti TA via Hardhat + E2E on-chain + snarkjs (§11.2; harness vektor interop Schnorr belum ada).
 >
+> **Status**: Update 2026-06-23: dokumen dilengkapi agar utuh sebagai referensi penguasaan teori+teknis. (1) **§14 Penelitian terdahulu & posisi XevouZK** ditulis (sebelumnya hanya ada di TOC) — peta 13 rujukan, tabel perbandingan, gap yang diisi vs yang BUKAN klaim novel, dan posisi jujur di mana XevouZK lebih lemah dari SOTA (BlockMaze/Zerocash). (2) **§15 Landasan teori fondasional** ditulis — silsilah primitif (GMR → Fiat-Shamir → Schnorr; QAP → Groth16 + Poseidon + Zerocash/Tornado) dengan rujukan akar; matematika tetap di ZK-SNARK-DOCUMENTATION. (3) **§11.7 Divergensi proposal → implementasi** ditambah — proposal (Vue.js/XAMPP/merchant/benchmark TPS/dataset Kaggle/framing akuntabilitas) **tidak selaras** dengan repo `zk_wallet`; tiap divergensi diberi alasan + cara membela, termasuk koreksi mischaracterization Bontekoe.
+>
 > **Hubungan dengan dokumen lain** — dokumen ini bersifat *naratif & konseptual*.
 > Untuk detail mendalam, lihat:
 > - [PETA-KODE.md](PETA-KODE.md) — peta kode: file & baris mana untuk apa (routing, controller, service, JS, circuit, kontrak).
@@ -39,6 +41,8 @@
 11. [Hal penting untuk pembelaan Tugas Akhir](#11-hal-penting-untuk-pembelaan-tugas-akhir)
 12. [Keterbatasan dan future work](#12-keterbatasan-dan-future-work)
 13. [Glossary](#13-glossary)
+14. [Penelitian terdahulu (state of the art) & posisi XevouZK](#14-penelitian-terdahulu-state-of-the-art--posisi-xevouzk)
+15. [Landasan teori fondasional & rujukan kriptografi](#15-landasan-teori-fondasional--rujukan-kriptografi)
 
 ---
 
@@ -119,6 +123,12 @@ Komponen yang membuat XevouZK layak disebut "ZKP platform":
 - **Verifier** on-chain (smart contract Solidity hasil ekspor snarkjs).
 - **Trusted setup** (ceremony menghasilkan kunci proving/verifying).
 - **Settlement layer** (Polygon Amoy) tempat proof diverifikasi & dana berpindah.
+
+> **Positioning lengkap vs penelitian terdahulu** (BlockMaze, Zerocash, Tornado
+> Cash, payment channel, FeatherWallet, dst.) beserta **gap yang diisi** dan
+> **apa yang BUKAN klaim novel** XevouZK ada di [§14](#14-penelitian-terdahulu-state-of-the-art--posisi-xevouzk).
+> Rantai rujukan kriptografi fondasional (GMR, Schnorr, Fiat-Shamir, Groth16,
+> Poseidon) ada di [§15](#15-landasan-teori-fondasional--rujukan-kriptografi).
 
 ---
 
@@ -231,7 +241,7 @@ dengan VK yang tertanam — keduanya berasal dari satu sumber setup.
 ### 5.2 Prinsip arsitektur yang mengikat
 
 1. **Proof selalu di-generate di client.** Rahasia tidak boleh keluar perangkat.
-2. **Verifikasi yang mengikat ada on-chain.** Verifikasi server hanya pra-cek/hint.
+2. **Verifikasi yang mengikat ada on-chain.** Pra-cek pembayaran (hemat gas) kini **di klien** (`zk-verify.js`), bukan server — server tak lagi menerima commitment/nullifier pengirim.
 3. **Login Schnorr diverifikasi server-side**; pembayaran Groth16 diverifikasi on-chain.
 4. **Anti double-spend via nullifier** di smart contract.
 5. **Murni P2P** — tidak ada merchant, tidak ada top-up, tidak ada payment gateway.
@@ -265,7 +275,9 @@ Bagian ini menjelaskan "Lego block" yang dipakai berulang. §7.1–7.6 memberi t
 konsep dalam format **apa** + **kenapa**; §7.7–7.9 adalah *deep-dive* yang
 menyatukannya menjadi mesin privasi XevouZK: **model commitment-pool** (mint/burn/
 change note), **alasan tidak memakai Merkle tree**, dan **batas privasi
-(anonymity set & linkability)** yang harus diakui jujur untuk pembelaan TA.
+(anonymity set & linkability)** yang harus diakui jujur untuk pembelaan TA. §7.10
+menjelaskan fitur pendukung (backup note & account guard), dan §7.11 menjawab
+**kenapa ada dua jalur** (plain vs privat) beserta kenapa fiat-ramp tetap publik.
 
 ### 7.1 Commitment
 
@@ -642,6 +654,85 @@ tanpa mengorbankan model non-custodial.
   name="account-schnorr-pub">`). Tak cocok → operasi dibatalkan **di klien**; password
   tetap tak pernah dikirim ke server.
 
+### 7.11 Kenapa ada DUA jalur: transaksi plain vs privat (dan kenapa fiat-ramp publik)
+
+Pertanyaan penguji yang hampir pasti muncul: *"Kalau temanya privasi via ZKP,
+kenapa sistem masih punya transaksi plain (publik)? Bukankah itu menggugurkan
+tujuannya?"* Jawabannya **tidak** — dan harus dijelaskan presisi, karena ada **dua
+lapisan "publik" yang berbeda** yang sering tertukar.
+
+XevouZK punya **empat mode tx**, semua **self-signed** (`msg.sender = user`); tiga
+publik, satu privat. Ketiganya yang publik **bukan** hal yang sama:
+
+| Mode | Apa | Lewat pool? | Publik/privat | Gas (Amoy, §10) | Batasan penerima |
+|---|---|---|---|---|---|
+| **plain** (`transfer`) | Kirim MATIC biasa A→B | ❌ tidak | **Publik** (alamat + nominal terbroadcast) | ~21k | alamat 0x **apa pun** |
+| **deposit** | Masukkan nilai ke pool privat | ✅ masuk | **Publik** (fiat-ramp **in**) | ~75k | diri sendiri (mint commitment) |
+| **privateTransfer** | Bayar di dalam pool | ✅ di dalam | **PRIVAT** (hanya commitment + memo ECIES) | ~478k | wajib punya **viewing key** (zkpub) |
+| **withdraw** | Cairkan nilai dari pool | ✅ keluar | **Publik** (fiat-ramp **out**) | ~428k | alamat penerima (full-burn) |
+
+Jadi "plain vs privat" sebetulnya = **(plain transfer + dua ujung fiat-ramp)** vs
+**(privateTransfer)**. Pisahkan alasannya:
+
+**A. Kenapa jalur PLAIN TRANSFER tetap ada (mode `transfer`) — bukan kelalaian, tapi pilihan sadar:**
+
+1. **Fleksibilitas penerima.** `privateTransfer` **mensyaratkan** penerima sudah
+   punya *viewing key* (zkpub) yang terdaftar — pengirim butuh `recipientShieldPub`
+   untuk membentuk `recipientCommitment` (§7.7.1). Konsekuensinya **tidak bisa**
+   mengirim privat ke alamat 0x sembarang atau ke orang yang bukan pengguna XevouZK.
+   Jalur plain menutup kasus ini: kirim ke **alamat apa pun**, seperti transfer
+   MATIC biasa.
+2. **Biaya.** Privasi tidak gratis: `privateTransfer` ~478k gas vs plain ~21k —
+   **≈23×** lebih mahal (verifikasi Groth16 on-chain konstan, §10). Untuk pembayaran
+   yang memang tak sensitif, memaksa jalur privat = membayar mahal untuk privasi yang
+   tak dibutuhkan. Plain = opsi murah saat privasi tak relevan.
+3. **Baseline pembanding (nilai evaluasi TA).** Justru karena ada plain, klaim privasi
+   bisa **dibuktikan secara kontras**: di explorer, tx plain membuka alamat+nominal,
+   sedangkan `privateTransfer` hanya memperlihatkan hash Poseidon + memo terenkripsi.
+   Tanpa baseline plain, tak ada bukti "selisih privasi" yang konkret untuk ditunjukkan
+   ke panel. Ini bahan demo + bab pengujian.
+4. **Model privasi opt-in yang jujur.** TA **tidak** mengklaim "semua transaksi selalu
+   privat". Klaim yang benar: *"ZKP **dapat** membuat pembayaran P2P privat (nominal +
+   penerima tersembunyi dari explorer publik)"*. Plain adalah pengakuan eksplisit bahwa
+   privasi itu **pilihan dengan ongkos**, bukan default paksa.
+
+> Catatan implementasi: tx plain dicatat ke riwayat lewat `POST /payment/record-relay`
+> ([recordRelayTransfer](../app/Http/Controllers/PaymentController.php)) yang **informatif
+> saja** (idempoten pada `polygon_tx_hash`, **tidak** memutasi saldo — saldo selalu dari
+> RPC). Server tetap hanya **relay** raw tx yang ditandatangani browser; plain pun
+> non-custodial.
+
+**B. Kenapa DEPOSIT & WITHDRAW publik — ini struktural, bukan kebocoran:**
+
+Pool privat adalah sistem **tertutup berisi commitment opaque**. Nilai harus bisa
+**masuk** dari dunia MATIC publik (deposit) dan **keluar** kembali (withdraw). Kedua
+penyeberangan batas ini **niscaya publik**:
+
+- `deposit{value}(commitment)` — jumlah MATIC yang masuk **terlihat** sebagai `value`
+  tx, dan `msg.sender` = penyetor. Tak mungkin disembunyikan: rantai harus tahu ada
+  nilai nyata yang dikunci.
+- `withdraw(...)` — kontrak mentransfer MATIC ke alamat penerima; **penerima + nominal
+  sengaja publik** (ujung pencairan).
+
+Ini **pola yang sama dengan Tornado Cash**: privasi hidup **di antara** ramp (hop-hop
+`privateTransfer` di dalam pool), **bukan** pada ramp itu sendiri. Yang tersembunyi
+adalah *apa yang terjadi di tengah* (nominal & penerima transfer), bukan fakta bahwa
+nilai pernah masuk/keluar pool.
+
+**C. Pemisahan UI agar tak salah pakai.** Kedua jalur dipisah **secara struktural**,
+bukan satu checkbox: tab **Plain (Publik)** memuat banner peringatan bahwa alamat &
+nominal terlihat di explorer; transfer privat ada di tab **Privat (Pool)** sendiri
+(tempel viewing key) atau via **Scan QR Privat**. `qr-scanner.js` bersifat *mode-aware*
+(QR alamat → jalur plain/relay; QR Privat zkpub → `sendPrivate`). Jadi pengguna tak
+bisa "tidak sengaja" mengirim data sensitif lewat jalur publik. Detail per-field:
+[PRIVACY-GAP-ANALYSIS §C](PRIVACY-GAP-ANALYSIS.md).
+
+> ⚠️ **Anti-overclaim**: jangan katakan "semua transaksi XevouZK privat" atau "deposit
+> & withdraw juga tersembunyi". Yang benar: **hanya `privateTransfer` yang privat**;
+> plain, deposit, dan withdraw publik **by design** (lihat §9 & §7.9). Justru kejujuran
+> "privasi itu opt-in pada hop transfer, ramp tetap publik" yang membuat klaim TA kuat
+> dan tak bisa dipatahkan satu pertanyaan.
+
 ---
 
 ## 8. Alur end-to-end (ringkas)
@@ -653,6 +744,17 @@ Ringkasan naratif:
    password)`. Server hanya menerima **public key + address** — **password tidak
    dikirim**; `users.password` diisi hash acak placeholder. Tidak ada kolom
    `encrypted_private_key`.
+1b. **Isi MATIC test (Amoy) — wajib sebelum bertransaksi** — wallet yang baru dibuat
+   **kosong (0 MATIC)**. User butuh MATIC testnet untuk **gas setiap transaksi** *dan*
+   untuk **nominal yang dideposit ke pool**. Tanpa saldo, deposit/transaksi gagal dengan
+   `insufficient funds for gas`. Alamat Polygon Anda terlihat di halaman `/wallet`. Dua
+   cara memperolehnya:
+   - **Faucet in-app** — `/wallet` → tombol **"Request MATIC"**. Dikirim dari master
+     wallet XevouZK: **5 MATIC per permintaan, cooldown 24 jam** (`WalletController@requestTestMatic`
+     → `FaucetService`). Praktis untuk top-up cepat saat demo.
+   - **Faucet publik Polygon** — https://faucet.polygon.technology/ → pilih jaringan
+     **Polygon Amoy** → tempel alamat Polygon Anda. Alternatif: faucet Alchemy / QuickNode
+     untuk Amoy. Berguna kalau saldo master faucet sedang habis.
 2. **Login (Schnorr)** — browser tanda tangani `email|timestamp|csrf` dengan
    Schnorr key. Server verify (anti-replay 5 menit + single-use nonce + CSRF +
    rate limit). `Auth::attempt` sudah dihapus — password tidak dikirim.
@@ -660,15 +762,15 @@ Ringkasan naratif:
    sign tx `deposit{value}(commitment)`, relay. Ini titik "fiat ramp" yang memang
    publik (`msg.sender = user`).
 4. **Transfer privat (ZK)** — pengirim scan **QR Privat (zkpub)** penerima, browser
-   generate proof Groth16 + memo ECIES, server pra-validasi (`/payment/transfer/verify`),
-   lalu **user sign sendiri** `privateTransfer` → `/payment/relay`. On-chain: pairing
+   generate proof Groth16 + memo ECIES, **verifikasi proof lokal** (`zk-verify.js`, tanpa
+   round-trip server), lalu **user sign sendiri** `privateTransfer` → `/payment/relay`. On-chain: pairing
    check, burn commitment lama, mint commitment kembalian + penerima, catat nullifier,
    emit `EncryptedNote`. Explorer hanya melihat 4 hash Poseidon + memo terenkripsi;
    `msg.sender = user` (nominal & penerima tetap tersembunyi).
 4b. **Terima (penemuan note)** — penerima `/dashboard` → "Cek Transfer Masuk"
    memindai event `EncryptedNote`, trial-decrypt memo, simpan note yang cocok.
 5. **Withdraw (full-burn)** — browser decrypt note, generate proof withdraw,
-   preview validity, sign & relay tx `withdraw`. Kontrak transfer MATIC ke
+   **verifikasi proof lokal** (`zk-verify.js`), sign & relay tx `withdraw`. Kontrak transfer MATIC ke
    recipient (recipient & amount sengaja publik — ujung "fiat ramp").
 6. **QR Code P2P** — *static* (alamat saja) untuk receive ad-hoc; *dynamic*
    (`amount`+`description` + HMAC, expire 15 menit) untuk payment request.
@@ -875,6 +977,35 @@ hanya dapat MASTER — hak admin kontrak tetap aman. Detail: [PROJECT-STATUS §5
 - **"Kenapa setup single-party?"** → Trade-off prototipe; production butuh
   multi-party Phase 2. Phase 1 (pot14 Hermez) sudah multi-party.
 - **"User lupa password?"** → Wallet hilang; recovery (BIP-39) adalah future work.
+- **"Kenapa masih ada transfer plain kalau temanya privasi?"** → Privasi **opt-in**, bukan paksa. Plain dipertahankan untuk (a) kirim ke alamat 0x apa pun / penerima non-XevouZK (privateTransfer wajib viewing key), (b) hemat gas ~23× saat tak butuh privasi, dan (c) baseline pembanding untuk membuktikan selisih privasi di explorer. Hanya `privateTransfer` yang privat; plain/deposit/withdraw publik by design. Detail: §7.11.
+
+### 11.7 Divergensi proposal → implementasi (WAJIB bisa dijelaskan)
+
+Proposal TA (19 Oktober 2025) ditulis **sebelum** sistem dibangun, sehingga
+beberapa keputusan di proposal **berbeda** dengan implementasi final XevouZK (repo
+`zk_wallet`). Penguji kemungkinan besar memegang proposal — setiap divergensi di
+bawah harus bisa dijawab dengan **alasan teknis**, bukan dianggap "gagal target".
+Prinsip jawaban: *proposal = rencana awal; implementasi = hasil iterasi rekayasa
+yang lebih jujur terhadap batas waktu, tooling, dan model privasi yang dipilih.*
+
+| Aspek | Yang ditulis di proposal | Yang benar-benar dibangun (XevouZK) | Alasan / cara membela |
+|---|---|---|---|
+| **Frontend** | Vue.js | **Vanilla JS + Blade + Vite** (tanpa framework SPA) | snarkjs/ffjavascript butuh kontrol penuh atas Buffer/WASM di browser; Vanilla JS + node-polyfills lebih sederhana & transparan untuk membuktikan "proof di-generate di client". Tidak ada kebutuhan reaktivitas SPA. |
+| **Web server** | Apache via XAMPP | **Laravel Herd** (runtime lokal) | Herd = stack PHP modern (Laravel 12 / PHP 8.2) tanpa overhead XAMPP; prototipe TA berjalan lokal (tanpa hosting). Tidak mengubah substansi sistem. |
+| **Cakupan transaksi** | P2P **+ merchant** | **P2P murni** (tanpa merchant, top-up, payment gateway) | Merchant menuntut alur settlement/akuntansi tambahan yang di luar fokus privasi. Batasan ini sudah konsisten dengan klaim §5.2 ("murni P2P"). Akui sebagai *scoping*, bukan kegagalan. |
+| **Evaluasi kinerja** | 100 transaksi, **dataset Kaggle**, target **TPS > 20, latency < 5 s, gen < 3 s, verify < 1 s, gas < 0,015 POL, success > 95%** | **Tidak ada benchmark throughput/TPS.** Bukti = 34 Hardhat test + lifecycle E2E on-chain (Amoy) + snarkjs proof (3 circuit, termasuk negative case) + **gas riil terukur** (deposit 74.963 / withdraw 427.667 / privateTransfer 478.101 — §10) | Ini divergensi **paling penting**. TPS/throughput tidak bermakna untuk prototipe single-user di testnet (lihat §11.2 & §12). Dataset Kaggle tidak relevan: transaksi XevouZK adalah tx on-chain nyata, bukan data sintetis. **Jangan klaim target throughput proposal terpenuhi** — reframe ke "validitas fungsional + biaya gas terukur". Catatan: target `gas < 0,015 POL` hanya tercapai untuk deposit/plain; withdraw (~0,015) & privateTransfer (~0,017) **di ambang/di atasnya** karena verifikasi Groth16 on-chain konstan (§10) — jelaskan sebagai sifat fundamental, bukan kegagalan optimasi. |
+| **Framing motivasi** | "Menyeimbangkan **privasi & akuntabilitas**" (mengikuti Bontekoe dkk.) | XevouZK **privasi-saja** — **tidak ada** mekanisme akuntabilitas/auditor/*judges* | Bontekoe menambah *auditability* (auditor bisa membuka transaksi besar). XevouZK **tidak** mengimplementasikan sisi akuntabilitas itu. **Reframe judul/abstrak**: posisikan sebagai "privasi nominal & penerima pada pembayaran P2P", bukan "balance privacy-accountability". Kalau abstrak proposal masih bilang menyeimbangkan akuntabilitas, itu **overclaim yang harus dikoreksi** sebelum sidang. |
+| **QR Code** | "Hanya menyimpan informasi identifikasi transaksi" | **Static** (alamat) + **dynamic** (payment request HMAC-signed, expire 15 menit) | Implementasi final **lebih kaya** dari proposal — ini nilai plus, bukan divergensi negatif. |
+| **Autentikasi** | Disebut umum ("verifikasi tanpa ungkap kredensial") | **Schnorr secp256k1 (Fiat-Shamir)** menggantikan password sepenuhnya saat login | Detail Schnorr adalah pengisian dari kerangka proposal, sejalan dengan judul. |
+| **Mekanisme privasi inti** | Tidak rinci di proposal | **Commitment-pool ala Tornado** (commitment + nullifier + burn/mint), **tanpa Merkle tree** (§7.7–7.9) | Ini kontribusi teknis utama. Jelaskan sebagai keputusan desain sadar (§7.8), termasuk batas anonymity set yang diakui jujur (§7.9). |
+
+**Koreksi referensi yang perlu diperhatikan**: proposal mendeskripsikan Bontekoe dkk.
+sebagai "solusi teoretis tanpa implementasi praktis". Faktanya abstrak Bontekoe dkk.
+(2022) menyatakan *"we propose **and implement**"* — mereka membangun prototipe
+permissioned. Gap sesungguhnya bukan "tidak ada implementasi", melainkan:
+*permissioned + auditable + tanpa QR + tanpa deployment testnet publik* vs XevouZK
+*non-custodial + QR + P2P + privasi-saja di testnet publik*. Perbaiki kalimat ini di
+laporan agar tidak dipatahkan penguji yang membaca paper aslinya (lihat §14).
 
 ---
 
@@ -936,6 +1067,240 @@ Glossary ringkas untuk dokumen ini. Versi lengkap & matematis ada di
 | **EIP-197** | Precompile pairing check di EVM (`0x08`) yang memungkinkan verifikasi Groth16 on-chain. |
 | **BN128 / alt_bn128** | Kurva eliptik untuk Groth16 di EVM. |
 | **Polygon Amoy** | Testnet Polygon (chainId 80002), pengganti Mumbai. |
+
+---
+
+## 14. Penelitian terdahulu (state of the art) & posisi XevouZK
+
+Bagian ini memetakan rujukan terdahulu, **kontribusi tiap paper**, dan **di mana
+XevouZK berdiri** — termasuk pengakuan jujur tentang apa yang **lebih lemah**
+dibanding state-of-the-art akademik. Tujuannya: saat penguji bertanya "apa
+kebaruannya?" atau "kenapa tidak sekuat X?", jawaban sudah siap dan tidak overclaim.
+
+### 14.1 Peta lanskap (empat kelompok rujukan)
+
+**Kelompok A — Skema pembayaran privat berbasis zk-SNARK (paling relevan & paling kuat):**
+
+- **Zerocash** (Ben-Sasson dkk., IEEE S&P 2014) — fondasi semua *decentralized
+  anonymous payment* (DAP): commitment + nullifier + Merkle tree untuk anonymity set
+  penuh. XevouZK meminjam **commitment + nullifier**, tetapi **tanpa Merkle tree**
+  (§7.8) — jadi lebih ringan tapi tanpa anonymity set Zerocash.
+- **BlockMaze** (Guan dkk., IEEE TDSC) — *account-model* privacy blockchain berbasis
+  zk-SNARK dengan **dual-balance**. Menyembunyikan saldo akun, nominal transaksi,
+  **dan tautan pengirim↔penerima**. Diimplementasikan di Libsnark + Go-Ethereum;
+  eksperimen 300 node: verifikasi ~14,2 ms, generasi proof 6,1–18,6 s, throughput
+  ~20 TPS. **Ini SOTA akademik yang lebih kuat dari XevouZK** — lihat §14.4.
+- **zk-APC** (Guo dkk., *Blockchains* 2024) — *payment channel* anonim off-chain
+  berbasis zk-SNARK + commitment; menjamin *relational anonymity* + privasi nominal
+  on/off-chain. Fokus **skalabilitas via off-chain**; XevouZK adalah **settlement
+  on-chain** (bukan channel), jadi pendekatan berbeda.
+- **Bontekoe dkk.** (PST 2022) — *permissioned* DAP yang menyeimbangkan **anonimitas
+  + auditability**: anonim sampai ambang tertentu per satuan waktu, transaksi besar
+  wajib menyertakan detail terenkripsi yang dapat dibuka sekelompok *judges*. Memperluas
+  Zerocash. **Diimplementasikan** (bukan teori murni). XevouZK **tidak** punya sisi
+  akuntabilitas ini — perbedaan framing yang harus diluruskan (§11.7).
+
+**Kelompok B — Kelayakan ZKP + smart contract di Polygon (mendukung pilihan platform):**
+
+- **Ahmad dkk.** (ICADEIS 2025, Telkom University) — ZKP + smart contract untuk
+  **e-voting** di Polygon, biaya tx **0,010 POL**. Membuktikan Polygon layak untuk
+  aplikasi ZKP. Domain berbeda (voting), tetapi **menjadi dasar pilihan Polygon** XevouZK.
+- **Abidin dkk.** (JIIK Gunadarma 2023) — smart contract **verifikasi dokumen** berbasis
+  ZKP di Polygon; membuktikan properti rahasia tanpa membuka isi dokumen. Platform sama,
+  domain berbeda.
+- **Marcellino dkk.** (2024) — autentikasi identitas hybrid **ZK-SNARK** untuk e-voting,
+  di-deploy ke Ethereum + L2 (Avalanche, Arbitrum, **Polygon**). Gas Ethereum ~USD 12,5
+  vs Polygon **~USD 0,02** — memperkuat argumen efisiensi biaya Polygon.
+
+**Kelompok C — Integrasi QR Code + blockchain / e-wallet (mendukung antarmuka P2P):**
+
+- **Waqas dkk.** (IJET 2020, "Securavanya") — arsitektur aman transaksi *micro
+  e-commerce* dengan **QR scan + e-wallet + blockchain** (enkripsi/dekripsi). Era
+  **pra-ZKP** (berbasis enkripsi, bukan zero-knowledge). Preseden kombinasi QR+wallet+chain.
+- **Kusuma dkk.** (ICACNIS 2022, Telkom University) — keamanan **sertifikat tanah**
+  via blockchain + **validasi QR Code** di Indonesia. Preseden QR+blockchain konteks
+  Indonesia; **tanpa ZKP & tanpa pembayaran**.
+
+**Kelompok D — ZKP untuk autentikasi/identitas & konteks Indonesia (mendukung sisi auth & SNAP):**
+
+- **Ramadhoni & Santoso** (Sinkron 2023) — ZK-SNARK (library *gnark*, Golang) untuk
+  **SNAP** (Standar Nasional OPEN API Pembayaran) Indonesia; arsitektur **konseptual**,
+  tanpa QR & tanpa metrik kinerja kuantitatif. XevouZK = implementasi konkret + QR + P2P.
+- **Tangka dkk.** (ISSS 2022) — aplikasi ZKP pada pembayaran **e-commerce**; lebih ke
+  studi persepsi pengguna (kegunaan, kepercayaan) + catatan risiko DOS. Bukan
+  implementasi kriptografis penuh.
+- **Onais Ahmad dkk.** (*Sensors*, "BAuth-ZKP") — *multi-factor authentication* berbasis
+  blockchain + ZKP untuk *smart city*. Domain auth IoT; relevan ke sisi autentikasi.
+- **FeatherWallet** (Perešíni dkk., arXiv 2025) — dompet mobile ringan yang memakai
+  zk-SNARK untuk **proof of chain extension** (sinkronisasi header trustless, hemat
+  storage 20×). **Bukan** sistem privasi pembayaran — zk dipakai untuk *validasi rantai*,
+  bukan menyembunyikan transaksi. Hubungan dengan XevouZK bersifat tangensial.
+- **Barros dkk.** (arXiv 2022) — *self-sovereign identity* + blockchain + ZKP untuk
+  *vaccination pass* (buktikan tervaksin tanpa membuka identitas). Domain kredensial/SSI.
+
+### 14.2 Tabel perbandingan langsung
+
+| Sistem | ZKP | Privasi nominal | Sembunyikan tautan S↔R | Anonymity set | QR | Non-custodial | Platform | Bukti/skala |
+|---|---|---|---|---|---|---|---|---|
+| **Zerocash** | Groth16-era | ✅ | ✅ | ✅ (Merkle) | ❌ | ✅ | Bitcoin-like | Teori + prototipe |
+| **BlockMaze** | zk-SNARK | ✅ | ✅ | ✅ (account dual-balance) | ❌ | ✅ | Go-Ethereum | 300 node, ~20 TPS |
+| **zk-APC** | zk-SNARK | ✅ | ✅ (relational) | — (channel) | ❌ | ✅ | Bitcoin-like | Eval kinerja |
+| **Bontekoe** | zk-SNARK | ✅ | ✅ | ✅ + **auditable** | ❌ | permissioned | DLT permissioned | Prototipe |
+| **Ahmad (e-voting)** | ZKP | n/a (voting) | n/a | n/a | ❌ | — | **Polygon** | 0,010 POL |
+| **Ramadhoni (SNAP)** | ZK-SNARK | ✅ (data) | — | — | ❌ | — | konsep | Tanpa metrik |
+| **Waqas (QR e-wallet)** | ❌ (enkripsi) | ⚠️ | ❌ | ❌ | ✅ | ❌ | blockchain umum | Arsitektur |
+| **XevouZK** | **Groth16 + Schnorr** | ✅ (privat) | ❌ **(graf publik)** | ❌ **(tanpa Merkle)** | ✅ **(static+dynamic)** | ✅ **(semua mode)** | **Polygon Amoy** | 34 test + E2E on-chain + gas riil |
+
+> Legenda: ✅ ada/terpenuhi, ❌ tidak ada, ⚠️ sebagian, — tidak relevan.
+
+### 14.3 Gap yang DIISI XevouZK & apa yang BUKAN klaim novel
+
+**Gap yang diisi (boleh ditonjolkan):**
+1. **Integrasi tiga komponen dalam satu sistem terpasang**: Schnorr (auth tanpa
+   password) + Groth16 (pembayaran privat) + QR Code (antarmuka P2P) — di Polygon
+   publik, non-custodial, berjalan end-to-end. Rujukan terdahulu umumnya mengisi
+   **satu** sudut: ZKP-payment **atau** QR+blockchain **atau** ZKP-di-Polygon, jarang
+   ketiganya sekaligus.
+2. **Pembayaran P2P bernominal** (bukan mixer denominasi tetap, bukan e-voting, bukan
+   verifikasi dokumen) dengan note ECIES via event untuk penemuan dana penerima.
+3. **Konteks Indonesia + implementasi konkret** yang melengkapi kajian konseptual
+   Ramadhoni & Santoso (SNAP) dengan sistem yang benar-benar jalan + QR.
+
+**Yang BUKAN klaim novel (jangan diklaim sebagai temuan baru):**
+- Commitment + nullifier + burn/mint → berasal dari **Zerocash/Tornado** (§15).
+- "Polygon layak untuk ZKP" → sudah dibuktikan **Ahmad dkk.** & **Marcellino dkk.**
+- Groth16, Poseidon, Schnorr, Fiat-Shamir → primitif standar (§15), XevouZK
+  **memakai**, bukan menemukan.
+
+### 14.4 Posisi jujur: di mana XevouZK LEBIH LEMAH dari SOTA akademik
+
+Ini wajib diakui agar pembelaan kredibel (selaras [PRIVACY-GAP-ANALYSIS §H](PRIVACY-GAP-ANALYSIS.md)):
+
+| Properti | BlockMaze / Zerocash | XevouZK | Konsekuensi |
+|---|---|---|---|
+| Anonymity set | ✅ Merkle membership proof | ❌ flat mapping, commitment di-spend **eksplisit** | Graf commitment publik & dapat ditelusuri (§7.9) |
+| Tautan pengirim↔penerima | ✅ tersembunyi | ❌ `PrivateTransfer(old→new)` publik per hop | Deposit↔withdraw **mungkin** ditelusuri analis on-chain |
+| Sender metadata | relayer/skema menyembunyikan | ❌ `msg.sender = user` (self-signed) | *Fakta* bertransaksi terlihat (§7.6) |
+| Validasi formal | ✅ bukti keamanan formal | ❌ tidak ada proof keamanan formal | Klaim berbasis desain + pengujian, bukan teorema |
+| Skala teruji | 300 node, throughput terukur | ❌ single-user testnet, tanpa TPS | Tidak ada klaim throughput |
+
+**Cara memposisikan untuk panel**: XevouZK **bukan** klaim "lebih privat dari
+BlockMaze". Ia adalah **prototipe yang memprioritaskan keterpasangan, aksesibilitas
+(web wallet + QR + non-custodial), dan kesederhanaan** dengan **mengorbankan
+anonymity set**. Yang disembunyikan = **nominal + identitas penerima dari pengamat
+blockchain publik**; yang **tidak** = graf commitment & kedua ujung fiat-ramp.
+Peningkatan ke level BlockMaze/Zerocash (Merkle tree + relayer) adalah *future work*
+yang jelas (§12).
+
+---
+
+## 15. Landasan teori fondasional & rujukan kriptografi
+
+Bagian ini adalah **silsilah ide** di balik primitif XevouZK: dari mana tiap teknik
+berasal, apa kontribusinya, dan kenapa XevouZK memakainya. Fokusnya **konseptual +
+rujukan** — matematika persis (skema Schnorr, pipeline Groth16, constraint count)
+ada di [ZK-SNARK-DOCUMENTATION §3–§6](ZK-SNARK-DOCUMENTATION.md). Pahami rantai ini
+agar bisa menjawab "kenapa pakai X dan bukan Y" sampai ke akarnya.
+
+### 15.1 Silsilah ide (timeline ringkas)
+
+```
+1985  GMR ─────────────► definisi formal Zero-Knowledge (completeness/soundness/ZK)
+1986  Fiat–Shamir ─────► ubah protokol interaktif → non-interaktif (hash transcript)
+1989  Schnorr ─────────► tanda tangan ringkas berbasis discrete log
+        │
+        ├── (auth) ──────────────────────► XevouZK: login Schnorr (Fiat-Shamir variant)
+        │
+2013  GGPR (QAP) + Pinocchio ──► circuit → polinomial → bukti dapat diverifikasi
+2014  Zerocash ───────► commitment + nullifier + Merkle tree (DAP)
+2016  Groth16 ─────────► zk-SNARK terkecil & tercepat (3 elemen, 3 pairing)
+2019  Tornado Cash ────► commitment-pool praktis di Ethereum + relayer
+2019/21 Poseidon ─────► hash ramah-ZK (~250 constraint/eval)
+        │
+        └── (pembayaran) ────────────────► XevouZK: Groth16 + Poseidon + commitment-pool
+                                            (tanpa Merkle tree — §7.8)
+```
+
+### 15.2 Rujukan per-primitif
+
+**(1) Zero-Knowledge Proof — GMR (Goldwasser, Micali, Rackoff, 1985/1989).**
+*"The Knowledge Complexity of Interactive Proof Systems."* Mendefinisikan ZKP formal
+beserta tiga properti (completeness, soundness, zero-knowledge) yang dipakai di §2.2.
+**Akar dari semua klaim "tanpa mengungkap" XevouZK.**
+
+**(2) Fiat–Shamir heuristic (Fiat & Shamir, CRYPTO 1986).**
+*"How to Prove Yourself."* Mengubah protokol tantangan-jawab **interaktif** menjadi
+**non-interaktif** dengan mengganti tantangan acak verifier oleh hash atas transcript.
+**Dipakai dua kali di XevouZK**: (a) membuat Schnorr menjadi tanda tangan non-interaktif
+(challenge = hash pesan); (b) prinsip yang sama mendasari sifat non-interaktif zk-SNARK.
+
+**(3) Schnorr signature (Schnorr, J. Cryptology 1991; orig. CRYPTO 1989).**
+*"Efficient Signature Generation by Smart Cards."* Tanda tangan berbasis kesukaran
+*discrete logarithm*, ringkas dan cepat. XevouZK memakai varian **deterministik +
+Fiat-Shamir di atas secp256k1** untuk login tanpa mengirim password (detail skema:
+[ZK-SNARK-DOCUMENTATION §3](ZK-SNARK-DOCUMENTATION.md)). Dipilih untuk auth karena
+**tidak butuh trusted setup** dan cukup diverifikasi server-side.
+
+**(4) Quadratic Span Programs / QAP — GGPR (Gennaro, Gentry, Parno, Raykova, EUROCRYPT 2013)
+& Pinocchio (Parno dkk., IEEE S&P 2013).**
+Menerjemahkan komputasi (circuit) menjadi **polinomial** sehingga bisa dibuktikan
+secara succinct. Ini jembatan dari "circuit Circom" ke "proof zk-SNARK". XevouZK tidak
+menyentuh lapisan ini langsung — ditangani **Circom → R1CS → QAP** oleh toolchain.
+
+**(5) Groth16 (Jens Groth, EUROCRYPT 2016).**
+*"On the Size of Pairing-Based Non-interactive Arguments."* Konstruksi zk-SNARK
+**terkecil & tercepat** yang dikenal: proof hanya 3 elemen grup (~192 byte), verifikasi
+3 pairing (konstan, ~250k gas on-chain). **Harga**: butuh *trusted setup* per circuit
+(§7.4, §10). XevouZK memilih Groth16 karena succinct + murah diverifikasi di EVM —
+mengalahkan zk-STARK (~100 KB proof) untuk settlement on-chain (§10).
+
+**(6) Poseidon (Grassi, Khovratovich, Rechberger, Roy, Schofnegger, USENIX Security 2021).**
+Hash yang dirancang **ramah-aritmetika field** (S-box `x^5`), ~250 constraint per
+evaluasi vs ~25.000 untuk SHA-256 di dalam circuit. **Inti efisiensi circuit XevouZK**:
+semua commitment & nullifier memakai Poseidon (§7.1–7.2) agar proof cepat dibuat di
+browser. (Implementasi via `circomlib`/`circomlibjs`.)
+
+**(7) Zerocash (Ben-Sasson, Chiesa, Garman, Green, Miers, Tromer, Virza, IEEE S&P 2014).**
+Cetak biru *decentralized anonymous payment*: pasangan **commitment + nullifier** untuk
+note + **Merkle tree** untuk anonymity set. XevouZK **mengadopsi commitment + nullifier**
+tetapi **menanggalkan Merkle tree** (§7.8) — itulah sumber perbedaan privasi yang diakui
+jujur di §7.9 & §14.4.
+
+**(8) Tornado Cash (Pertsev, Semenov, Storm, whitepaper 2019).**
+Realisasi praktis commitment-pool + nullifier + **relayer gasless** di Ethereum. Pola
+"deposit → tarik via proof keanggotaan" inilah yang paling mirip XevouZK — **kecuali**
+XevouZK belum memakai Merkle membership proof maupun relayer (§7.6, §7.9). Rujukan ini
+penting untuk memosisikan XevouZK dan menjelaskan asimetri gas (§10).
+
+**(9) Kurva & precompile EVM.**
+- **secp256k1** (SEC 2 / SECG) — kurva untuk Schnorr & alamat Polygon (sama dengan Ethereum).
+- **BN254 / alt_bn128** (Barreto–Naehrig, SAC 2005) — kurva *pairing-friendly* untuk Groth16 di EVM.
+- **EIP-197** (precompile pairing `0x08`) — memungkinkan verifikasi Groth16 on-chain;
+  komponen dominan biaya gas withdraw/privateTransfer (§10). **EIP-2537 (BLS12-381)**
+  adalah arah mainnet masa depan (§12).
+
+**(10) Toolchain.** **Circom 2.1.6** (bahasa circuit) + **snarkjs 0.7.4** (compile,
+trusted setup, prove, export verifier Solidity) — ekosistem **iden3**. Powers of Tau
+**`pot14`** dari ceremony **Hermez** menyediakan SRS Phase 1 universal (§7.4).
+
+### 15.3 Bagaimana XevouZK merangkai rujukan ini
+
+| Kebutuhan XevouZK | Primitif | Rujukan akar |
+|---|---|---|
+| Login tanpa kirim password | Schnorr + Fiat-Shamir | (2)(3) |
+| Buktikan saldo cukup tanpa ungkap saldo | Groth16 + circuit `balance_check` | (4)(5) |
+| Transfer privat (sembunyikan nominal & penerima) | commitment-pool + Groth16 | (5)(6)(7)(8) |
+| Cegah double-spend | nullifier Poseidon | (6)(7) |
+| Hash murah di dalam circuit | Poseidon | (6) |
+| Verifikasi proof on-chain murah | Groth16 + EIP-197 di BN254 | (5)(9) |
+| Definisi jaminan "tanpa-pengetahuan" | properti GMR | (1) |
+
+> **Inti §15**: XevouZK **tidak menemukan primitif baru** — ia **mengomposisi**
+> primitif matang (GMR → Fiat-Shamir → Schnorr untuk auth; QAP → Groth16 + Poseidon +
+> pola Zerocash/Tornado untuk pembayaran) menjadi satu sistem pembayaran P2P
+> non-custodial dengan QR. Kebaruannya pada **integrasi & keterpasangan**, bukan pada
+> kriptografi dasarnya (lihat §14.3). Untuk kedalaman matematis tiap primitif, rujuk
+> [ZK-SNARK-DOCUMENTATION.md](ZK-SNARK-DOCUMENTATION.md).
 
 ---
 
