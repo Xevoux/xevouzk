@@ -11,7 +11,9 @@
     </header>
 
     @if($wallet->isBalanceStale())
-        @php($staleness = $wallet->balanceStaleness())
+        @php
+            $staleness = $wallet->balanceStaleness();
+        @endphp
         <div id="balanceStaleBanner" class="alert alert-{{ $staleness === 'offline' ? 'error' : 'warning' }}">
             <i data-lucide="{{ $staleness === 'offline' ? 'wifi-off' : 'triangle-alert' }}"></i>
             <span>
