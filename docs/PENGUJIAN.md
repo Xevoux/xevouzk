@@ -3,6 +3,8 @@
 > **Tujuan dokumen**: panduan + **template hasil** untuk bab *Pengujian* TA. Berisi
 > 7 jenis pengujian, dipetakan ke **klaim yang divalidasi**, lengkap dengan
 > command, metrik, **template tabel hasil**, dan cara **capture bukti**.
+> **Mulai cepat**: lihat **[§10](#10-bukti-yang-wajib-masuk-ke-ta-kit-artefak--cara-dapat)**
+> untuk checklist artefak bukti yang ditempel ke laporan + perintah pembangkitnya.
 >
 > **Hubungan dengan dokumen lain** (jangan duplikasi — dokumen ini mengorganisir,
 > yang lain memuat detail):
@@ -11,7 +13,7 @@
 > - [ZK-SNARK-DOCUMENTATION.md](ZK-SNARK-DOCUMENTATION.md) §9 — threat model.
 > - [PROJECT-STATUS.md](PROJECT-STATUS.md) §7 — demo script TA.
 >
-> **Snapshot**: 2026-06-22. Runtime lokal via Laravel Herd; shell contoh **PowerShell**.
+> **Snapshot**: 2026-06-30. Runtime lokal via Laravel Herd; shell contoh **PowerShell**.
 
 ---
 
@@ -28,7 +30,7 @@ Urutan penomoran boleh diatur ulang sesuai aturan skripsi. Beberapa pengujian
 | 4 | Hardhat test | **Keamanan / correctness kontrak** | Anti double-spend, kontrol akses, invariant pool | `34 passing` |
 | 5 | Completeness & soundness ZK | **Keamanan ZK** | Proof valid diterima; proof palsu/curang ditolak | Negative case `test-proofs.js` |
 | 6 | Verifikasi by inspection | **Privasi / non-custodial** | Password & private key tak pernah terkirim/disimpan | DevTools Network + inspeksi DB |
-| 7 | Keamanan autentikasi Schnorr *(opsional)* | **Keamanan auth** | Replay/invalid-signature/brute-force ditolak | Uji manual (curl/browser) |
+| 7 | Keamanan autentikasi Schnorr | **Keamanan auth** | Login sah diterima (klien≡server) + replay/sig-palsu/timestamp/brute-force ditolak | Skrip live reproducible (`5/5 passed`) |
 
 ### Catatan overlap (penting — menjawab "apakah #1 = #3?")
 
@@ -256,29 +258,56 @@ Acuan demo lengkap: [PROJECT-STATUS §7 Skenario 0–1](PROJECT-STATUS.md#7-demo
 
 ---
 
-## 7. Keamanan autentikasi Schnorr *(opsional)*
+## 7. Keamanan autentikasi Schnorr (reproducible, live)
 
-> **Status**: opsional — boleh tidak dipakai. Suite PHPUnit (yang dulu menguji ini
-> otomatis) sudah dihapus dari repo, jadi pengujian kini **manual**.
-
-**Tujuan**: membuktikan login Schnorr tahan replay, signature palsu, dan brute-force.
+**Tujuan**: membuktikan login Schnorr **benar & aman** secara end-to-end —
+signature sah diterima, dan replay, signature palsu, timestamp basi, serta
+brute-force **ditolak**.
 
 **Klaim yang diuji**: [ZK-SNARK §9.3](ZK-SNARK-DOCUMENTATION.md) (baris replay/login) +
 [PRIVACY-GAP §3.F](PRIVACY-GAP-ANALYSIS.md).
 
-**Skenario manual** (browser DevTools / curl):
+Satu skrip reproducible (menggantikan uji manual lama; **tidak butuh PHPUnit**).
+[scripts/test-schnorr-auth-live.mjs](../scripts/test-schnorr-auth-live.mjs)
+menabrak endpoint `/login` **yang sungguhan** memakai modul **klien asli**
+([schnorr-auth.js](../resources/js/schnorr-auth.js) + polygon-key.js) untuk
+men-derive keypair & menandatangani — persis seperti browser. Mendaftarkan
+user uji segar tiap run (email unik → **tak menyentuh akun nyata**). Server
+memverifikasi dengan [SchnorrService](../app/Services/SchnorrService.php) di
+[AuthController](../app/Http/Controllers/AuthController.php).
 
-| Skenario | Langkah | Harapan |
+| Skenario | Harapan | Mekanisme yang membuktikan |
 |---|---|---|
-| Replay signature | Tangkap request `POST /login` yang sukses, kirim ulang signature yang sama | Ditolak (single-use nonce + window 5 menit) |
-| Signature palsu | Ubah 1 karakter `schnorr_signature` lalu submit | Ditolak (verifikasi gagal) |
-| Brute-force | Submit login gagal > 5× untuk email yang sama | Diblokir sementara (rate limit per email+IP) |
-| Timestamp kedaluwarsa | Kirim `schnorr_timestamp` > 300 detik lalu | Ditolak (di luar window) |
+| **A. Login sah** | diterima (→ dashboard) | `verify(pub, msg, sig) == true` — sekaligus bukti **klien≡server**: signature JS diterima `verify()` PHP |
+| **B. Replay signature** (request identik dikirim ulang) | ditolak | nonce single-use + window 300 dtk + csrf terikat sesi |
+| **C. Signature palsu** (tamper 1 karakter) | ditolak | verifikasi gagal (soundness) |
+| **D. Timestamp > 300 dtk** | ditolak | di luar window anti-replay |
+| **E. Brute-force** (login gagal berulang) | diblokir di percobaan ke-6 | rate-limit per (email+IP) |
 
-**Cara capture bukti**: screenshot response server (403/422/429) + pesan error generik.
+```powershell
+# server hidup dulu — Herd: https://xevouzk.test (perlu `herd link xevouzk`)
+node scripts/test-schnorr-auth-live.mjs   # target: ALL SCHNORR AUTH LIVE TESTS PASSED (5/5)
 
-> Kalau ingin reproducible (bukan klik manual), skenario ini bisa dibuat skrip kecil
-> Node/curl — minta dibuatkan bila perlu.
+# override host bila perlu:
+$env:BASE_URL="https://zk_wallet.test"; node scripts/test-schnorr-auth-live.mjs   # link default folder
+$env:BASE_URL="http://127.0.0.1:8000";  node scripts/test-schnorr-auth-live.mjs   # php artisan serve
+```
+
+**Cara capture bukti**: screenshot output `5/5` + baris "diblokir pada percobaan
+ke-6". Status exit: `echo $LASTEXITCODE` → `0`.
+
+**Catatan jujur (wajib)**:
+- Skenario **A** sekaligus membuktikan interoperabilitas **klien (JS) ≡ server
+  (PHP)** di level yang mengikat (signature JS diverifikasi PHP). Sistem ini
+  signing **selalu di klien**; server **hanya verify** ([CLAUDE.md](../CLAUDE.md) §3.2) — jadi
+  tak perlu menguji `SchnorrService::sign()` terpisah (tak dipakai di produksi).
+- Skrip mematikan verifikasi TLS untuk sertifikat lokal Herd
+  (`NODE_TLS_REJECT_UNAUTHORIZED=0`) — **hanya untuk uji lokal**, bukan produksi.
+- Tiap run brute-force memakai email throwaway → **tidak** mengunci akun nyata.
+  User uji `schnorr-test-<ts>@xevou.test` tertinggal di DB (boleh dibersihkan).
+- Replay ditolak oleh **kombinasi** guard (nonce + window + csrf sesi); skrip
+  memverifikasi **properti keamanannya** ("request yang sama tak bisa dipakai
+  ulang untuk dapat akses"), bukan satu mekanisme tunggal.
 
 ---
 
@@ -292,7 +321,7 @@ Susunan yang mengalir untuk laporan (sesuaikan aturan skripsi):
    browser, [DEPLOY-GUIDE §5](DEPLOY-GUIDE.md)).
 3. **Pengujian privasi** — §1 (Plain vs Privat) + §6 (by inspection).
 4. **Pengujian performa** — §2 (waktu proof) + §3 (gas).
-5. **Pengujian keamanan/correctness** — §4 (Hardhat) + §5 (soundness) + §7 (auth, opsional).
+5. **Pengujian keamanan/correctness** — §4 (Hardhat) + §5 (soundness) + §7 (auth Schnorr live: completeness/interop + replay/sig-palsu/timestamp/brute-force).
 6. **Analisis & keterbatasan** — kaitkan ke threat model [ZK-SNARK §9](ZK-SNARK-DOCUMENTATION.md)
    & batas privasi [PRIVACY-GAP](PRIVACY-GAP-ANALYSIS.md).
 
@@ -307,3 +336,77 @@ Susunan yang mengalir untuk laporan (sesuaikan aturan skripsi):
 
 Mengakui batasan ini **menguatkan** pembelaan — semua sudah terdokumentasi di
 [ZK-SNARK §9.4](ZK-SNARK-DOCUMENTATION.md) & [PRIVACY-GAP §6](PRIVACY-GAP-ANALYSIS.md).
+
+---
+
+## 10. Bukti yang wajib masuk ke TA (kit artefak + cara dapat)
+
+> Bagian ini **mengonsolidasi** semua bukti dari §1–§7 jadi satu checklist
+> actionable. Tiap pengujian di atas sudah punya sub-"Cara capture bukti";
+> di sini disusun jadi daftar artefak yang benar-benar **ditempel ke laporan**
+> beserta perintah pembangkitnya.
+
+**Prinsip bukti TA:**
+- **Reproducible** — sertakan perintah persis + lingkungan, supaya penguji bisa
+  mengulang dan dapat hasil yang sama.
+- **Jujur** — tampilkan apa adanya (termasuk angka yang kurang ideal); kaitkan
+  keterbatasan ke §9.
+- **Tertaut klaim** — tiap bukti menjawab satu klaim spesifik (kolom "membuktikan").
+
+### 10.1 Daftar artefak (tempel ke bab Pengujian/Lampiran)
+
+| # | Artefak bukti | Dari | Membuktikan | Cara mendapatkan (perintah/langkah) | Bentuk |
+|---|---|---|---|---|---|
+| 0 | **Tabel lingkungan uji** (CPU, RAM, OS, Node, PHP, browser, alamat kontrak Amoy) | §8.1 | Konteks reproducibility | `node -v`, `php -v`, spesifikasi mesin; alamat kontrak dari [PROJECT-STATUS §2](PROJECT-STATUS.md) | Tabel |
+| 1 | **Screenshot alur fungsional** deposit → transfer → withdraw sukses + tx hash | §8.2 | Sistem bekerja end-to-end | Smoke test browser, [DEPLOY-GUIDE §5](DEPLOY-GUIDE.md) | Screenshot |
+| 2 | **Capture PolygonScan** plain vs privateTransfer (tab Overview + Logs) | §1 | Nominal & penerima tersembunyi on-chain | `https://amoy.polygonscan.com/tx/<hash>` → screenshot | Screenshot |
+| 3 | **Tabel perbandingan field** Plain vs Privat | §1 | Field mana terlihat / tersembunyi | Isi template tabel §1 dari capture #2 | Tabel |
+| 4 | **Tabel waktu proof** (N≥10 run, mean/median/stdev) + ukuran proof ~192 B | §2 | Proof Groth16 praktis di klien | `cd circuits; 1..15 \| ForEach-Object { node scripts/test-proofs.js } \| Select-String "generated in"` | Tabel + log |
+| 5 | **Tabel gas** (lokal gas-reporter + riil on-chain) + screenshot fee PolygonScan | §3 | Verifikasi ZK on-chain feasible & terukur | `cd contracts; $env:REPORT_GAS="true"; npx hardhat test`; receipt e2e | Tabel + screenshot |
+| 6 | **Screenshot `34 passing`** (Hardhat) | §4 | Kontrak benar & aman (anti double-spend, akses) | `cd contracts; npx hardhat test` | Screenshot |
+| 7 | **Screenshot output `test-proofs.js`** (`proof verified`, `tampered proof rejected`, …, `ALL TESTS PASSED`) | §5 | Completeness & soundness ZK | `cd circuits; node scripts/test-proofs.js` | Screenshot |
+| 8 | **Screenshot DevTools Network** payload register/login (tanpa `password`/private key) | §6 | Non-custodial: rahasia tak terkirim | DevTools → Network → submit form → lihat payload | Screenshot |
+| 9 | **Capture query DB** (wallets tanpa `encrypted_private_key`; `users.password` placeholder; `note_backups` ciphertext; `transactions.private_transfer.polygon_tx_hash = NULL`) | §6 | Server tak simpan/menautkan rahasia | `php artisan tinker` / phpMyAdmin → `SELECT ...` (lihat tabel §6) | Screenshot/teks |
+| 10 | **Cuplikan `laravel.log`** tanpa tautan akun→tx privat | §6 | Log tak membocorkan linkage | Buka `storage/logs/laravel.log` | Teks |
+| 11 | **Screenshot `ALL SCHNORR AUTH LIVE TESTS PASSED (5/5)`** + baris "diblokir pada percobaan ke-6" | §7 | Auth sah diterima; replay/palsu/timestamp/brute-force ditolak | `node scripts/test-schnorr-auth-live.mjs` (server hidup) | Screenshot |
+
+> Opsional berbobot: output **Slither** (§4) dan angka **constraint r1cs** (§2).
+
+### 10.2 Cara mengambil screenshot yang sah (anti-diragukan)
+
+- **Sertakan perintah + timestamp dalam satu frame.** Untuk output terminal,
+  screenshot sekaligus baris perintah dan hasilnya; tambahkan exit code:
+  ```powershell
+  node scripts/test-schnorr-auth-live.mjs; "exit=$LASTEXITCODE"   # exit=0 = lulus
+  ```
+- **PolygonScan**: pastikan **tx hash + jaringan (Amoy)** ikut terlihat di frame.
+- **DevTools**: tab **Network** → pilih request `login`/`register` → panel
+  **Payload/Request** terlihat penuh.
+- Untuk metrik waktu (§2), simpan **raw log N run** sebagai lampiran, bukan cuma
+  tabel ringkas — penguji bisa cek perhitungan mean/stdev.
+
+### 10.3 Saran organisasi berkas bukti
+
+Kumpulkan di satu folder (mis. `bukti-pengujian/`) dengan penamaan jelas, agar
+mudah dirujuk dari laporan:
+
+```
+bukti-pengujian/
+├── 00-lingkungan.png
+├── 01-fungsional-deposit-transfer-withdraw.png
+├── 02-polygonscan-plain.png / 02-polygonscan-private.png
+├── 04-waktu-proof-15run.txt
+├── 05-gas-reporter.png / 05-gas-onchain.png
+├── 06-hardhat-34passing.png
+├── 07-test-proofs-output.png
+├── 08-network-login-payload.png
+├── 09-db-wallets-users.png
+└── 11-schnorr-auth-5of5.png
+```
+
+### 10.4 JANGAN dimasukkan ke bukti (keamanan)
+
+- ❌ Isi `.env`, private key, mnemonic, atau `*.ptau`/proving key besar.
+- ❌ Screenshot yang memuat password asli atau private key di DevTools/console.
+- ❌ Saldo/akun bernilai riil — gunakan **akun & kunci khusus testnet** saja.
+- Bila sebuah screenshot tak sengaja memuat rahasia, **redaksi/blur** dulu.
